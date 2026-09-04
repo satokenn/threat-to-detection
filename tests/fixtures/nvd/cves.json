@@ -1,0 +1,33 @@
+{
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-TEST-0001",
+        "descriptions": [
+          {"lang": "en", "value": "Example issue."}
+        ],
+        "weaknesses": [
+          {"description": [{"lang": "en", "value": "CWE-79"}]}
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {"cvssData": {"baseScore": 8.1}}
+          ]
+        },
+        "configurations": [
+          {
+            "nodes": [
+              {
+                "cpeMatch": [
+                  {
+                    "criteria": "cpe:2.3:a:vendor:example-product:1.0:*:*:*:*:*:*:*"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -47,6 +47,12 @@ src/threat_to_detection/
 └── services/     # 処理全体のオーケストレーション
 ```
 
+各ディレクトリの詳細は、それぞれのREADMEを参照してください。`examples/`は人が実行する入力例、`tests/`は機械的に正しさを検証するコードとfixtureです。両者は同じ目的ではありません。
+
+- [`examples/README.md`](examples/README.md)
+- [`tests/README.md`](tests/README.md)
+- [`data/README.md`](data/README.md)
+
 ## 開発方針
 
 - 外部APIの結果はfixtureで再現できるようにする

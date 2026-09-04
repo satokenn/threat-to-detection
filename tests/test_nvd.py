@@ -6,34 +6,9 @@ from threat_to_detection.collectors.nvd import NvdClient
 from threat_to_detection.models.system import Asset, Software, SystemModel
 
 
-FIXTURE = {
-    "vulnerabilities": [
-        {
-            "cve": {
-                "id": "CVE-TEST-0001",
-                "descriptions": [{"lang": "en", "value": "Example issue."}],
-                "weaknesses": [{"description": [{"lang": "en", "value": "CWE-79"}]}],
-                "metrics": {"cvssMetricV31": [{"cvssData": {"baseScore": 8.1}}]},
-                "configurations": [
-                    {
-                        "nodes": [
-                            {
-                                "cpeMatch": [
-                                    {
-                                        "criteria": (
-                                            "cpe:2.3:a:vendor:example-product:1.0:"
-                                            "*:*:*:*:*:*:*"
-                                        )
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ],
-            }
-        }
-    ]
-}
+FIXTURE = json.loads(
+    (Path(__file__).parent / "fixtures/nvd/cves.json").read_text(encoding="utf-8")
+)
 
 
 def test_nvd_response_is_normalized_and_cached(tmp_path: Path) -> None:
