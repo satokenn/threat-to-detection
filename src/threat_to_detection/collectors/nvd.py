@@ -17,6 +17,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from threat_to_detection.models.vulnerability import Vulnerability
+from threat_to_detection.models.system import Software, SystemModel
 
 
 NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
@@ -87,6 +88,21 @@ class NvdClient:
         vulnerabilities = payload.get("vulnerabilities", [])
         return tuple(_normalize(item["cve"]) for item in vulnerabilities if "cve" in item)
 
+    def search_for_software(self, software: Software) -> tuple[Vulnerability, ...]:
+        """Fetch CVEs associated with a software model's generated CPE."""
+        return self.search_cves(cpe_name=software.cpe_name)
+
+    def search_for_system(self, system: SystemModel) -> dict[str, tuple[Vulnerability, ...]]:
+        """Fetch and deduplicate CVEs for every software item in a system model."""
+        result: dict[str, tuple[Vulnerability, ...]] = {}
+        for asset in system.assets:
+            vulnerabilities: dict[str, Vulnerability] = {}
+            for software in asset.software:
+                for vulnerability in self.search_for_software(software):
+                    vulnerabilities[vulnerability.cve_id] = vulnerability
+            result[asset.name] = tuple(vulnerabilities.values())
+        return result
+
     def fetch_all(self, **search: str) -> tuple[Vulnerability, ...]:
         """Fetch all pages for a search selector."""
         start_index = 0
@@ -146,7 +162,7 @@ class NvdClient:
             return json.load(response)
 
 
-def _normalize(cve: dict[str, Any]) -> Vulnerability:
+def normalize_cve(cve: dict[str, Any]) -> Vulnerability:
     descriptions = cve.get("descriptions", [])
     description = next(
         (item.get("value", "") for item in descriptions if item.get("lang") == "en"),
@@ -168,6 +184,9 @@ def _normalize(cve: dict[str, Any]) -> Vulnerability:
         cwes=cwes,
         cvss_score=score,
     )
+
+
+_normalize = normalize_cve
 
 
 def _cvss_score(metrics: dict[str, Any]) -> float | None:

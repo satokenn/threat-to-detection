@@ -78,4 +78,6 @@ export NVD_API_KEY="your-api-key"
 
 Collectorは取得結果をプロジェクト内の`Vulnerability`モデルへ正規化します。NVDのCPE applicability treeは現段階では最初の製品・バージョンを抽出しており、複雑なバージョン範囲の判定は今後の課題です。
 
+システム定義のソフトウェアは`vendor`、`product`、`version`で記述します。`cpe`を明示した場合はそれを優先し、省略時はCPE 2.3を生成してNVD検索に使用します。
+
 API仕様: [NVD Vulnerability API](https://nvd.nist.gov/developers/vulnerabilities)
