@@ -6,5 +6,7 @@
 - `vulnerability.py`: CVE、CWE、CVSSなどの正規化結果
 - `threat.py`: 攻撃候補と出典・信頼度
 - `detection.py`: 検知候補と必要ログ、ログ不足
+- `capec.py`: CAPEC Attack Pattern
+- `attack.py`: MITRE ATT&CK TechniqueとTactic
 
 ここではNVDやATT&CKのHTTP通信を行いません。入力が不正な場合は、後続処理に渡す前に検証します。
