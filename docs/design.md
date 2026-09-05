@@ -42,7 +42,7 @@
 この図は、専門用語や実装上のディレクトリ名を知らない読者が、システムの目的と処理の流れを理解するためのものである。
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[対象システムの構成を入力]
     B[自システムへの影響を確認]
     C[関連する脆弱性を抽出]
@@ -62,7 +62,7 @@ flowchart LR
 全体像で示した処理を、今回利用する脆弱性・攻撃情報の体系に対応付ける。
 
 ```mermaid
-flowchart LR
+flowchart TD
     system[対象システムのソフトウェア]
     nvd[NVD]
     cve[CVE]
@@ -190,7 +190,7 @@ system:
 対応付けは次のグラフとして扱う。
 
 ```mermaid
-flowchart LR
+flowchart TD
     cve[CVE] -->|has weakness| cwe[CWE]
     cwe -->|related weakness| capec[CAPEC]
     capec -->|external reference| attack[ATT&CK Technique]
@@ -250,7 +250,7 @@ rationale       対応付けの根拠
 将来的に、fixtureを使って次の経路を一つのテストで確認する。
 
 ```mermaid
-flowchart LR
+flowchart TD
     scenario[scenario.yaml] --> cpe[CPE] --> cve[CVE / CWE] --> capec[CAPEC] --> attack[ATT&CK]
 ```
 
