@@ -37,25 +37,78 @@
 
 上記の「これから実装する内容」は設計上の拡張候補であり、現在の実装済み機能とは区別する。
 
-## 4. 全体アーキテクチャ
+## 4. 全体像
+
+この図は、専門用語や実装上のディレクトリ名を知らない読者が、システムの目的と処理の流れを理解するためのものである。
+
+```mermaid
+flowchart LR
+    A[対象システムの構成を入力]
+    B[自システムへの影響を確認]
+    C[関連する脆弱性を抽出]
+    D[想定される攻撃を整理]
+    E[攻撃者の行動を整理]
+    F[監視すべき挙動を整理]
+    G[必要なログと取得済みログを比較]
+    H[検知設計の候補を提示]
+
+    A --> B --> C --> D --> E --> F --> G --> H
+```
+
+このシステムは、単に脆弱性を一覧表示するのではなく、対象システムに関係する脆弱性を起点に、攻撃と検知設計の検討材料まで段階的に整理する。
+
+## 5. 情報連携の詳細
+
+全体像で示した処理を、今回利用する脆弱性・攻撃情報の体系に対応付ける。
+
+```mermaid
+flowchart LR
+    system[対象システムのソフトウェア]
+    nvd[NVD]
+    cve[CVE]
+    cwe[CWE]
+    capec[CAPEC]
+    attack[MITRE ATT&CK]
+    detection[検知設計情報]
+
+    system -->|製品・バージョン照合| nvd
+    nvd --> cve
+    cve --> cwe
+    cwe --> capec
+    capec --> attack
+    attack --> detection
+```
+
+ここで初めてCVE、CWE、CAPEC、MITRE ATT&CKという専門用語を使う。各用語の役割は次のとおりである。
+
+- CVE: 個別の脆弱性
+- CWE: 脆弱性の弱点の種類
+- CAPEC: 弱点を悪用する攻撃パターン
+- MITRE ATT&CK: 攻撃者が取る行動や攻撃手法
+
+## 6. 実装構成
+
+実装者がコードの責務と追加場所を理解するための構成図である。これは初見の読者向けの全体像とは分けて扱う。
 
 ```mermaid
 flowchart TD
-    input["scenario.yaml<br/>対象資産・ソフトウェア・経路"]
-    models["models<br/>System / Software / Asset"]
-    collectors["collectors<br/>NVD / CAPEC / ATT&CK"]
-    mappers["mappers<br/>CVE → CWE → CAPEC → ATT&CK"]
-    analysis["analyzers / knowledge<br/>関連性・検知ギャップ"]
-    reporters["reporters<br/>Markdown / JSON"]
+    cli[CLI]
+    system_model[システム入力モデル<br/>models]
+    collectors[外部データ取得<br/>collectors]
+    mappers[情報間の対応付け<br/>mappers]
+    analyzers[関連性・検知ギャップ分析<br/>analyzers / knowledge]
+    reporters[レポート出力<br/>reporters]
 
-    input -->|validate / normalize| models
-    models -->|CPE| collectors
-    collectors -->|normalized models| mappers
-    mappers -->|candidates + evidence| analysis
-    analysis --> reporters
+    cli --> system_model
+    system_model --> collectors
+    collectors --> mappers
+    mappers --> analyzers
+    analyzers --> reporters
 ```
 
-## 5. データフロー
+実装上の責務やファイル配置の詳細は、各ディレクトリのREADMEに記載する。
+
+## 7. データフロー
 
 ```mermaid
 flowchart TD
@@ -73,7 +126,7 @@ flowchart TD
 
 各段階の結果は、後続段階が直接Webページを参照せずに扱える共通モデルへ変換する。これにより、外部データの取得と分析ロジックを分離する。
 
-## 6. コンポーネントの責務
+## 8. コンポーネントの責務
 
 | コンポーネント | 責務 | 行わないこと |
 |---|---|---|
@@ -87,7 +140,7 @@ flowchart TD
 | `examples` | 利用者向けの入力例 | テストの正解データ |
 | `tests` | 実装の再現可能な検証 | 本番処理の実行 |
 
-## 7. 入力モデル
+## 9. 入力モデル
 
 対象システムはYAMLで定義する。
 
@@ -122,7 +175,7 @@ system:
 - 外部公開状況と通信経路は、脆弱性の存在と攻撃経路を分けて考えるために保持する
 - ログは種類を表す初期モデルであり、将来はコマンドラインや親子プロセスなどの項目へ細分化する
 
-## 8. 外部データソース
+## 10. 外部データソース
 
 | 情報源 | 形式 | 役割 | ローカルで保持するもの |
 |---|---|---|---|
@@ -132,7 +185,7 @@ system:
 
 外部データは取得時点で内容が変わり得るため、分析結果には可能な限り出典、データバージョン、取得時点を残す。テストでは外部通信を行わず、fixtureを使う。
 
-## 9. 対応付けと不確実性
+## 11. 対応付けと不確実性
 
 対応付けは次のグラフとして扱う。
 
@@ -160,7 +213,7 @@ confidence      確信度
 rationale       対応付けの根拠
 ```
 
-## 10. キャッシュと再現性
+## 12. キャッシュと再現性
 
 - APIレスポンスは`data/cache/`に保存する
 - キャッシュは再生成可能な一時データであり、通常Gitへコミットしない
@@ -168,7 +221,7 @@ rationale       対応付けの根拠
 - `examples/`は人が実行するための入力、`tests/fixtures/`は自動テストのための固定データとする
 - 最新データを取得したい場合はキャッシュを使わないオプションを提供する
 
-## 11. エラー処理
+## 13. エラー処理
 
 | 状況 | 方針 |
 |---|---|
@@ -181,7 +234,7 @@ rationale       対応付けの根拠
 
 「対応がないこと」と「取得に失敗したこと」は意味が異なるため、同じ空結果に隠さない。
 
-## 12. テスト方針
+## 14. テスト方針
 
 ### 単体テスト
 
@@ -203,7 +256,7 @@ flowchart LR
 
 実際の外部APIに依存するテストは作らない。外部データの更新確認は、別の手動または定期処理として扱う。
 
-## 13. 今後の拡張ルール
+## 15. 今後の拡張ルール
 
 新しい外部情報源を追加するときは、次の順序を守る。
 
@@ -216,7 +269,7 @@ flowchart LR
 
 これにより、外部データの形式変更が分析処理全体へ直接波及することを防ぐ。
 
-## 14. スコープ外
+## 16. スコープ外
 
 現時点では次を実装対象外とする。
 
