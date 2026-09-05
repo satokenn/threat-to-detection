@@ -1,0 +1,31 @@
+system:
+  metadata:
+    name: example-web-system
+    description: Small web application for the MVP experiment
+  assets:
+    - name: web-server
+      type: server
+      software:
+        - vendor: example-vendor
+          product: example-product
+          version: "1.0"
+      exposed_to:
+        - internet
+      logs:
+        - access_log
+        - process_creation
+    - name: database
+      type: database
+      software:
+        - vendor: example-vendor
+          product: example-database
+          version: "1.0"
+      logs:
+        - database_audit
+  flows:
+    - from: internet
+      to: web-server
+      protocol: https
+    - from: web-server
+      to: database
+      protocol: tcp

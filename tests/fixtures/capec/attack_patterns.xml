@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Attack_Pattern_Catalog xmlns="http://capec.mitre.org/capec-3">
+  <Attack_Patterns>
+    <Attack_Pattern ID="100" Name="Example Injection">
+      <Description>An example attack pattern.</Description>
+      <Related_Weaknesses>
+        <Related_Weakness CWE_ID="79" />
+        <Related_Weakness CWE_ID="CWE-89" />
+      </Related_Weaknesses>
+    </Attack_Pattern>
+    <Attack_Pattern ID="101" Name="Another Injection">
+      <Description>Another example attack pattern.</Description>
+      <Related_Weaknesses>
+        <Related_Weakness CWE_ID="79" />
+      </Related_Weaknesses>
+    </Attack_Pattern>
+  </Attack_Patterns>
+</Attack_Pattern_Catalog>
