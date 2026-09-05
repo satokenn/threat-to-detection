@@ -6,7 +6,8 @@ system:
     - name: web-server
       type: server
       software:
-        - name: example-product
+        - vendor: example-vendor
+          product: example-product
           version: "1.0"
       exposed_to:
         - internet
@@ -16,7 +17,8 @@ system:
     - name: database
       type: database
       software:
-        - name: example-database
+        - vendor: example-vendor
+          product: example-database
           version: "1.0"
       logs:
         - database_audit
