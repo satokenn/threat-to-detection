@@ -39,60 +39,36 @@
 
 ## 4. 全体アーキテクチャ
 
-```text
-┌──────────────────────────────┐
-│ scenario.yaml                │
-│ 対象資産・ソフトウェア・経路 │
-└──────────────┬───────────────┘
-               │ validate / normalize
-               ▼
-┌──────────────────────────────┐
-│ models                       │
-│ System / Software / Asset    │
-└──────────────┬───────────────┘
-               │ CPE
-               ▼
-┌──────────────────────────────┐
-│ collectors                   │
-│ NVD / CAPEC / ATT&CK         │
-└──────────────┬───────────────┘
-               │ normalized models
-               ▼
-┌──────────────────────────────┐
-│ mappers                      │
-│ CVE→CWE→CAPEC→ATT&CK         │
-└──────────────┬───────────────┘
-               │ candidates + evidence
-               ▼
-┌──────────────────────────────┐
-│ analyzers / knowledge        │
-│ relevance / detection gap    │
-└──────────────┬───────────────┘
-               ▼
-┌──────────────────────────────┐
-│ reporters                    │
-│ Markdown / JSON              │
-└──────────────────────────────┘
+```mermaid
+flowchart TD
+    input["scenario.yaml<br/>対象資産・ソフトウェア・経路"]
+    models["models<br/>System / Software / Asset"]
+    collectors["collectors<br/>NVD / CAPEC / ATT&CK"]
+    mappers["mappers<br/>CVE → CWE → CAPEC → ATT&CK"]
+    analysis["analyzers / knowledge<br/>関連性・検知ギャップ"]
+    reporters["reporters<br/>Markdown / JSON"]
+
+    input -->|validate / normalize| models
+    models -->|CPE| collectors
+    collectors -->|normalized models| mappers
+    mappers -->|candidates + evidence| analysis
+    analysis --> reporters
 ```
 
 ## 5. データフロー
 
-```text
-scenario.yaml
-    ↓
-SystemModel
-    ↓
-Software.cpe_name
-    ↓
-NVD CVE
-    ↓
-Vulnerability(cve_id, cwes, cvss_score)
-    ↓
-CAPEC Attack Pattern
-    ↓
-ATT&CK AttackTechnique
-    ↓
-検知候補・必要ログ・不足ログ
+```mermaid
+flowchart TD
+    scenario["scenario.yaml"]
+    system["SystemModel"]
+    cpe["Software.cpe_name"]
+    cve["NVD CVE"]
+    vulnerability["Vulnerability<br/>cve_id / cwes / cvss_score"]
+    capec["CAPEC Attack Pattern"]
+    attack["ATT&CK AttackTechnique"]
+    detection["検知候補・必要ログ・不足ログ"]
+
+    scenario --> system --> cpe --> cve --> vulnerability --> capec --> attack --> detection
 ```
 
 各段階の結果は、後続段階が直接Webページを参照せずに扱える共通モデルへ変換する。これにより、外部データの取得と分析ロジックを分離する。
@@ -160,12 +136,11 @@ system:
 
 対応付けは次のグラフとして扱う。
 
-```text
-CVE ──has weakness──> CWE
-                         │
-                         └──related weakness──> CAPEC
-                                                   │
-                                                   └──external reference──> ATT&CK Technique
+```mermaid
+flowchart LR
+    cve[CVE] -->|has weakness| cwe[CWE]
+    cwe -->|related weakness| capec[CAPEC]
+    capec -->|external reference| attack[ATT&CK Technique]
 ```
 
 重要な設計上の前提は、対応付けが常に一意ではないことである。
@@ -221,12 +196,9 @@ rationale       対応付けの根拠
 
 将来的に、fixtureを使って次の経路を一つのテストで確認する。
 
-```text
-scenario.yaml
- → CPE
- → CVE/CWE
- → CAPEC
- → ATT&CK
+```mermaid
+flowchart LR
+    scenario[scenario.yaml] --> cpe[CPE] --> cve[CVE / CWE] --> capec[CAPEC] --> attack[ATT&CK]
 ```
 
 実際の外部APIに依存するテストは作らない。外部データの更新確認は、別の手動または定期処理として扱う。
