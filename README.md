@@ -47,6 +47,8 @@ src/threat_to_detection/
 └── services/     # 処理全体のオーケストレーション
 ```
 
+全体の責務、データフロー、外部情報源、対応付けの前提は[`docs/design.md`](docs/design.md)にまとめています。ドキュメントの入口は[`docs/README.md`](docs/README.md)です。
+
 各ディレクトリの詳細は、それぞれのREADMEを参照してください。`examples/`は人が実行する入力例、`tests/`は機械的に正しさを検証するコードとfixtureです。両者は同じ目的ではありません。
 
 - [`examples/README.md`](examples/README.md)
