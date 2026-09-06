@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "脅威情報から検知設計を支援する全体像",
+    "output": "overall-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/satokenn/threat-to-detection",
+      "revision": "1c5197d0bbeb6c9599b07cbe3322f7d5caf7e456"
+    }
+  },
+  "components": [
+    {
+      "id": "target-system",
+      "type": "external",
+      "label": "対象システム",
+      "sublabel": "資産・製品・通信経路・取得ログ",
+      "pos": [360, 40],
+      "size": [260, 76]
+    },
+    {
+      "id": "system-input",
+      "type": "backend",
+      "label": "システム情報を入力",
+      "sublabel": "YAMLで構成を定義",
+      "pos": [360, 170],
+      "size": [260, 76],
+      "sources": [
+        {"path": "examples/web-system.yaml", "label": "入力例"},
+        {"path": "src/threat_to_detection/models/system.py", "label": "入力モデル"}
+      ]
+    },
+    {
+      "id": "vulnerability-sources",
+      "type": "external",
+      "label": "公開された脆弱性情報",
+      "sublabel": "NVD・CVE・CWE",
+      "pos": [40, 300],
+      "size": [260, 76]
+    },
+    {
+      "id": "relevance-analysis",
+      "type": "security",
+      "label": "関係する脆弱性を抽出",
+      "sublabel": "製品・バージョンと照合",
+      "pos": [360, 300],
+      "size": [260, 76],
+      "sources": [
+        {"path": "src/threat_to_detection/collectors/nvd.py", "label": "脆弱性取得"},
+        {"path": "src/threat_to_detection/analyzers/relevance.py", "label": "関連性分析"}
+      ]
+    },
+    {
+      "id": "attack-information",
+      "type": "security",
+      "label": "想定される攻撃を整理",
+      "sublabel": "攻撃パターンと攻撃者の行動",
+      "pos": [360, 430],
+      "size": [260, 76],
+      "sources": [
+        {"path": "src/threat_to_detection/collectors/capec.py", "label": "攻撃パターン"},
+        {"path": "src/threat_to_detection/collectors/attack.py", "label": "攻撃者の行動"}
+      ]
+    },
+    {
+      "id": "detection-analysis",
+      "type": "security",
+      "label": "検知方法を検討",
+      "sublabel": "監視すべき挙動と必要ログ",
+      "pos": [360, 560],
+      "size": [260, 76]
+    },
+    {
+      "id": "detection-report",
+      "type": "backend",
+      "label": "検知設計の候補を提示",
+      "sublabel": "不足しているログ・監視項目",
+      "pos": [360, 690],
+      "size": [260, 76]
+    },
+    {
+      "id": "soc-analyst",
+      "type": "external",
+      "label": "SOC担当者",
+      "sublabel": "候補を確認して判断",
+      "pos": [360, 820],
+      "size": [260, 76]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "脅威・検知分析支援システム",
+      "wraps": ["system-input", "relevance-analysis", "attack-information", "detection-analysis", "detection-report"],
+      "pad": 28
+    }
+  ],
+  "connections": [
+    {"id": "system-to-input", "from": "target-system", "to": "system-input", "label": "構成を記述", "labelDy": 24, "variant": "emphasis"},
+    {"id": "input-to-relevance", "from": "system-input", "to": "relevance-analysis", "label": "製品・バージョン", "labelDy": 24},
+    {"id": "vulnerability-to-relevance", "from": "vulnerability-sources", "to": "relevance-analysis", "label": "脆弱性情報", "fromSide": "right", "toSide": "left"},
+    {"id": "relevance-to-attack", "from": "relevance-analysis", "to": "attack-information", "label": "関連する脆弱性", "labelDy": 24},
+    {"id": "attack-to-detection", "from": "attack-information", "to": "detection-analysis", "label": "攻撃者の行動", "labelDy": 24},
+    {"id": "detection-to-report", "from": "detection-analysis", "to": "detection-report", "label": "必要ログと取得ログ", "labelDy": 24},
+    {"id": "report-to-analyst", "from": "detection-report", "to": "soc-analyst", "label": "確認・判断", "labelDy": 24}
+  ],
+  "cards": [
+    {"dot": "cyan", "title": "入力", "items": ["対象システムの構成をYAMLで定義", "製品・バージョン・通信経路・取得ログを記述"]},
+    {"dot": "violet", "title": "分析", "items": ["公開情報とシステム構成を照合", "脆弱性から想定攻撃までを候補として整理"]},
+    {"dot": "emerald", "title": "出力", "items": ["監視すべき挙動を提示", "不足しているログを確認", "最終判断はSOC担当者が行う"]}
+  ]
+}
