@@ -3,6 +3,38 @@
   "id": "bundle--00000000-0000-4000-8000-000000000001",
   "objects": [
     {
+      "type": "x-mitre-data-source",
+      "id": "x-mitre-data-source--00000000-0000-4000-8000-000000000013",
+      "name": "Endpoint Telemetry"
+    },
+    {
+      "type": "x-mitre-data-component",
+      "id": "x-mitre-data-component--00000000-0000-4000-8000-000000000010",
+      "name": "Process Creation",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "DC0001"}],
+      "x_mitre_data_source_ref": "x-mitre-data-source--00000000-0000-4000-8000-000000000013"
+    },
+    {
+      "type": "x-mitre-analytic",
+      "id": "x-mitre-analytic--00000000-0000-4000-8000-000000000011",
+      "name": "Process analytic",
+      "description": "Observe suspicious process execution.",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "AN0001"}],
+      "x_mitre_log_source_references": [{
+        "x_mitre_data_component_ref": "x-mitre-data-component--00000000-0000-4000-8000-000000000010",
+        "name": "Sysmon",
+        "channel": "Event ID 1"
+      }],
+      "x_mitre_mutable_elements": [{"field": "process.command_line"}]
+    },
+    {
+      "type": "x-mitre-detection-strategy",
+      "id": "x-mitre-detection-strategy--00000000-0000-4000-8000-000000000012",
+      "name": "Process execution monitoring",
+      "external_references": [{"source_name": "mitre-attack", "external_id": "DET0001"}],
+      "x_mitre_analytic_refs": ["x-mitre-analytic--00000000-0000-4000-8000-000000000011"]
+    },
+    {
       "type": "attack-pattern",
       "id": "attack-pattern--00000000-0000-4000-8000-000000000001",
       "name": "Example Technique",
@@ -14,6 +46,12 @@
       "kill_chain_phases": [
         {"kill_chain_name": "mitre-attack", "phase_name": "execution"}
       ]
+    },
+    {
+      "type": "relationship",
+      "relationship_type": "detects",
+      "source_ref": "x-mitre-detection-strategy--00000000-0000-4000-8000-000000000012",
+      "target_ref": "attack-pattern--00000000-0000-4000-8000-000000000001"
     },
     {
       "type": "attack-pattern",

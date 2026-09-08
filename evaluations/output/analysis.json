@@ -1,0 +1,314 @@
+{
+  "schema_version": "1.0",
+  "scenario_id": "fixture-web-system",
+  "assets": {
+    "web-server": {
+      "vulnerabilities": [
+        {
+          "cve_id": "CVE-TEST-0001",
+          "product": "example-product",
+          "affected_versions": [
+            "1.0"
+          ],
+          "description": "Example issue.",
+          "cwes": [
+            "CWE-79"
+          ],
+          "cvss_score": 8.1,
+          "in_kev": false
+        }
+      ],
+      "detection_requirements": [
+        {
+          "technique_id": "T1059",
+          "strategy_id": "DET0001",
+          "strategy_name": "Process execution monitoring",
+          "analytics": [
+            {
+              "analytic_id": "AN0001",
+              "name": "Process analytic",
+              "description": "Observe suspicious process execution.",
+              "events": [
+                "Event ID 1"
+              ],
+              "fields": [
+                "process.command_line"
+              ],
+              "data_components": [
+                {
+                  "component_id": "DC0001",
+                  "name": "Process Creation",
+                  "data_source_id": "x-mitre-data-source--00000000-0000-4000-8000-000000000013",
+                  "data_source_name": "Endpoint Telemetry",
+                  "log_sources": [
+                    "Sysmon"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "trace_paths": [
+        {
+          "path_id": "web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001",
+          "asset": "web-server",
+          "cve_id": "CVE-TEST-0001",
+          "cwe_id": "CWE-79",
+          "capec_id": "CAPEC-100",
+          "technique_id": "T1059",
+          "strategy_id": "DET0001",
+          "strategy_name": "Process execution monitoring"
+        }
+      ],
+      "intermediate": {
+        "cwe_ids": [
+          "CWE-79"
+        ],
+        "capec_ids": [
+          "CAPEC-100",
+          "CAPEC-101"
+        ],
+        "technique_ids": [
+          "T1059",
+          "T1105"
+        ]
+      },
+      "mapping_gaps": [
+        {
+          "asset": "web-server",
+          "source": "T1105",
+          "path": "CVE-TEST-0001:CWE-79:CAPEC-100:T1105",
+          "stage": "Technique→Requirement",
+          "reason": "No detection requirement is mapped"
+        },
+        {
+          "asset": "web-server",
+          "source": "CAPEC-101",
+          "path": "CVE-TEST-0001:CWE-79:CAPEC-101",
+          "stage": "CAPEC→ATT&CK",
+          "reason": "No ATT&CK technique is mapped"
+        }
+      ],
+      "sigma_rules": [
+        {
+          "file": "sigma/web-server__T1059__DET0001__def734f878.yml",
+          "status": "written",
+          "title": "Process execution monitoring",
+          "rule_id": "c6b69fdc-f08e-5c9e-bf8b-08311354ebe2",
+          "rule_kind": "detection_candidate",
+          "technique_id": "T1059",
+          "mapping": {
+            "title": "Process execution monitoring",
+            "logsource": {
+              "category": "process_creation"
+            },
+            "detection": {
+              "selection": {
+                "EventID": 1,
+                "process.command_line|exists": true
+              },
+              "condition": "selection"
+            },
+            "id": "c6b69fdc-f08e-5c9e-bf8b-08311354ebe2",
+            "description": "Observe suspicious process execution. Generated from ATT&CK telemetry requirements; suspicious values were not specified.",
+            "tags": [
+              "attack.t1059"
+            ],
+            "level": "low",
+            "status": "experimental",
+            "x_threat_to_detection": {
+              "cve_ids": [
+                "CVE-TEST-0001"
+              ],
+              "cwe_ids": [
+                "CWE-79"
+              ],
+              "capec_ids": [
+                "CAPEC-100"
+              ],
+              "notes": [
+                "trace:web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001"
+              ],
+              "source": [
+                "ATT&CK detection strategy"
+              ],
+              "source_id": [
+                "DET0001"
+              ],
+              "rationale": [
+                "CVE → CWE → CAPEC → ATT&CK technique → detection requirement"
+              ],
+              "provenance": [
+                {
+                  "source": "pipeline",
+                  "source_id": "web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001",
+                  "rationale": "CVE → CWE → CAPEC → ATT&CK technique → detection requirement",
+                  "cve_ids": [
+                    "CVE-TEST-0001"
+                  ],
+                  "cwe_ids": [
+                    "CWE-79"
+                  ],
+                  "capec_ids": [
+                    "CAPEC-100"
+                  ]
+                }
+              ],
+              "rule_kind": "detection_candidate"
+            }
+          }
+        }
+      ],
+      "sigma_artifacts": [
+        {
+          "asset": "web-server",
+          "technique_id": "T1059",
+          "requirement_id": "DET0001",
+          "status": "written",
+          "file": "sigma/web-server__T1059__DET0001__def734f878.yml",
+          "title": "Process execution monitoring"
+        }
+      ],
+      "errors": []
+    },
+    "database": {
+      "vulnerabilities": [],
+      "detection_requirements": [],
+      "trace_paths": [],
+      "intermediate": {
+        "cwe_ids": [],
+        "capec_ids": [],
+        "technique_ids": []
+      },
+      "mapping_gaps": [],
+      "sigma_rules": [],
+      "sigma_artifacts": [],
+      "errors": []
+    }
+  },
+  "trace_paths": [
+    {
+      "path_id": "web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001",
+      "asset": "web-server",
+      "cve_id": "CVE-TEST-0001",
+      "cwe_id": "CWE-79",
+      "capec_id": "CAPEC-100",
+      "technique_id": "T1059",
+      "strategy_id": "DET0001",
+      "strategy_name": "Process execution monitoring"
+    }
+  ],
+  "mapping_gaps": [
+    {
+      "asset": "web-server",
+      "source": "T1105",
+      "path": "CVE-TEST-0001:CWE-79:CAPEC-100:T1105",
+      "stage": "Technique→Requirement",
+      "reason": "No detection requirement is mapped"
+    },
+    {
+      "asset": "web-server",
+      "source": "CAPEC-101",
+      "path": "CVE-TEST-0001:CWE-79:CAPEC-101",
+      "stage": "CAPEC→ATT&CK",
+      "reason": "No ATT&CK technique is mapped"
+    }
+  ],
+  "intermediate": {
+    "web-server": {
+      "cwe_ids": [
+        "CWE-79"
+      ],
+      "capec_ids": [
+        "CAPEC-100",
+        "CAPEC-101"
+      ],
+      "technique_ids": [
+        "T1059",
+        "T1105"
+      ]
+    },
+    "database": {
+      "cwe_ids": [],
+      "capec_ids": [],
+      "technique_ids": []
+    }
+  },
+  "errors": [],
+  "warnings": [],
+  "sigma_artifacts": {
+    "web-server": [
+      {
+        "asset": "web-server",
+        "technique_id": "T1059",
+        "requirement_id": "DET0001",
+        "status": "written",
+        "file": "sigma/web-server__T1059__DET0001__def734f878.yml",
+        "title": "Process execution monitoring"
+      }
+    ],
+    "database": []
+  },
+  "status": "partial",
+  "system": {
+    "assets": [
+      {
+        "name": "web-server",
+        "type": "server",
+        "software": [
+          {
+            "vendor": "vendor",
+            "product": "example-product",
+            "version": "1.0",
+            "cpe": null,
+            "cpe_name": "cpe:2.3:a:vendor:example-product:1.0:*:*:*:*:*:*:*"
+          }
+        ],
+        "exposed_to": [
+          "internet"
+        ],
+        "logs": [
+          "process_creation"
+        ],
+        "logsource": {
+          "category": "process_creation"
+        }
+      },
+      {
+        "name": "database",
+        "type": "database",
+        "software": [
+          {
+            "vendor": "vendor",
+            "product": "example-database",
+            "version": "1.0",
+            "cpe": null,
+            "cpe_name": "cpe:2.3:a:vendor:example-database:1.0:*:*:*:*:*:*:*"
+          }
+        ],
+        "exposed_to": [],
+        "logs": [
+          "database_audit"
+        ],
+        "logsource": null
+      }
+    ],
+    "flows": [
+      {
+        "source": "internet",
+        "destination": "web-server",
+        "protocol": "https"
+      },
+      {
+        "source": "web-server",
+        "destination": "database",
+        "protocol": "tcp"
+      }
+    ],
+    "metadata": {
+      "name": "fixture-web-system",
+      "description": "Reproducible and safe evaluation scenario backed by repository fixtures"
+    }
+  }
+}
