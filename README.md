@@ -24,8 +24,12 @@ uv run pytest
 uv run threat-to-detection examples/web-system.yaml
 uv run threat-to-detection fetch-cves --keyword "apache http server" --limit 10
 
-# エンドツーエンド分析（output/analysis.jsonとoutput/sigma/*.ymlを出力）
+# エンドツーエンド分析（既定はfixture/cacheのみ、output/analysis.jsonとoutput/sigma/*.ymlを出力）
 uv run threat-to-detection analyze examples/web-system.yaml
+
+# 不足データの取得を許可、またはキャッシュを強制更新
+uv run threat-to-detection analyze examples/web-system.yaml --online
+uv run threat-to-detection analyze examples/web-system.yaml --refresh
 
 # 同梱fixtureを使ったネットワークなしの分析
 uv run threat-to-detection analyze examples/web-system.yaml \
@@ -63,6 +67,10 @@ PYTHONPATH=src python -m threat_to_detection.cli analyze evaluations/scenario.ya
 多対多対応の影響、検知要件からSigmaへ自動化できる範囲と人のレビューが必要な境界は
 [`evaluations/README.md`](evaluations/README.md)と[`evaluations/history.md`](evaluations/history.md)
 に記録しています。
+
+## CI
+
+Pull Requestと`main`への変更で、Python 3.10 / 3.14の静的チェック、構文チェック、テスト、固定fixtureによるネットワークなし評価を実行します。失敗時はGitHub Actionsの`quality`ジョブで、最初に失敗したステップとfixture出力の`analysis.json`を確認してください。
 
 uvを使わない場合は、仮想環境を作成したうえで開発用依存関係をインストールしてください。
 

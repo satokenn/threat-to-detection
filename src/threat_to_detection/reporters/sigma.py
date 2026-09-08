@@ -11,7 +11,6 @@ import yaml
 from threat_to_detection.models.detection import DetectionRequirement
 from threat_to_detection.models.sigma import SigmaEvidence, SigmaEvidenceRecord, SigmaRule
 
-
 _EVENT_ID = re.compile(r"^event\s*id\s*[:=]?\s*(\d+)$", re.IGNORECASE)
 
 # ATT&CK data-component names are not Sigma logsource categories.  Keep only

@@ -16,9 +16,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from threat_to_detection.models.vulnerability import Vulnerability
 from threat_to_detection.models.system import Software, SystemModel
-
+from threat_to_detection.models.vulnerability import Vulnerability
 
 NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 JsonLoader = Callable[[Request, float], Any]
@@ -43,6 +42,8 @@ class NvdClient:
         max_retries: int = 2,
         sleep: Callable[[float], None] = time.sleep,
         opener: JsonLoader | None = None,
+        allow_network: bool = True,
+        refresh: bool = False,
     ) -> None:
         self.api_key = api_key or os.getenv("NVD_API_KEY")
         self.cache_dir = Path(cache_dir) if cache_dir else None
@@ -50,6 +51,14 @@ class NvdClient:
         self.max_retries = max_retries
         self.sleep = sleep
         self._opener = opener or self._open_json
+        self.allow_network = allow_network
+        self.refresh = refresh
+        self._request_metadata: list[dict[str, Any]] = []
+
+    @property
+    def request_metadata(self) -> tuple[dict[str, Any], ...]:
+        """Return provenance for requests made by this client during the run."""
+        return tuple(self._request_metadata)
 
     def search_cves(
         self,
@@ -120,18 +129,32 @@ class NvdClient:
     def _request(self, params: dict[str, Any]) -> dict[str, Any]:
         query = urlencode(params)
         cache_path = self._cache_path(query)
-        if cache_path and cache_path.exists():
-            return json.loads(cache_path.read_text(encoding="utf-8"))
-
         request = Request(f"{NVD_CVE_URL}?{query}", headers=self._headers())
+        if cache_path and cache_path.exists() and not self.refresh:
+            raw = cache_path.read_bytes()
+            payload = json.loads(raw.decode("utf-8"))
+            self._record_request(request, payload, "cache", raw, cache_path)
+            return payload
+
+        if not self.allow_network:
+            raise NvdApiError("NVD network access is disabled and no usable cache exists")
+
         for attempt in range(self.max_retries + 1):
             try:
                 payload = self._opener(request, self.timeout)
                 if not isinstance(payload, dict) or "vulnerabilities" not in payload:
                     raise NvdApiError("NVD response did not contain vulnerabilities")
+                raw = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
                 if cache_path:
                     cache_path.parent.mkdir(parents=True, exist_ok=True)
-                    cache_path.write_text(json.dumps(payload), encoding="utf-8")
+                    cache_path.write_bytes(raw)
+                self._record_request(
+                    request,
+                    payload,
+                    "refresh" if self.refresh else "online",
+                    raw,
+                    cache_path,
+                )
                 return payload
             except HTTPError as error:
                 if error.code != 429:
@@ -143,6 +166,26 @@ class NvdClient:
             except (URLError, TimeoutError) as error:
                 raise NvdApiError("Could not connect to the NVD API") from error
         raise AssertionError("unreachable")
+
+    def _record_request(
+        self,
+        request: Request,
+        payload: dict[str, Any],
+        mode: str,
+        raw: bytes,
+        cache_path: Path | None,
+    ) -> None:
+        self._request_metadata.append(
+            {
+                "url": request.full_url,
+                "mode": mode,
+                "path": str(cache_path) if cache_path else None,
+                "release": payload.get("dataVersion") or payload.get("version"),
+                "retrieved_at": payload.get("timestamp"),
+                "sha": payload.get("lastModified") or payload.get("timestamp"),
+                "raw_sha256": hashlib.sha256(raw).hexdigest(),
+            }
+        )
 
     def _headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json", "User-Agent": "threat-to-detection/0.1"}

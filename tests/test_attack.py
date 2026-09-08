@@ -9,7 +9,6 @@ from threat_to_detection.mappers.capec_to_attack import (
     map_capec_to_attack,
 )
 
-
 FIXTURE = Path(__file__).parent / "fixtures/attack/enterprise-attack.json"
 
 

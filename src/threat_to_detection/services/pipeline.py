@@ -35,7 +35,6 @@ from threat_to_detection.reporters.sigma import (
     render_sigma_yaml,
 )
 
-
 LOGGER = logging.getLogger(__name__)
 
 

@@ -5,15 +5,26 @@ import hashlib
 import json
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
-from threat_to_detection.collectors.attack import AttackCollector, AttackDataError
-from threat_to_detection.collectors.capec import CapecCollector, CapecDataError
-from threat_to_detection.collectors.nvd import NvdApiError, NvdClient
+from threat_to_detection.collectors.attack import (
+    ATTACK_STIX_URL,
+    AttackCollector,
+    AttackDataError,
+)
+from threat_to_detection.collectors.capec import (
+    CAPEC_XML_URL,
+    CapecCollector,
+    CapecDataError,
+)
+from threat_to_detection.collectors.nvd import NVD_CVE_URL, NvdApiError, NvdClient
+from threat_to_detection.models.provenance import DataSnapshot, display_path, file_sha256
 from threat_to_detection.models.system import load_system
+from threat_to_detection.reporters.sigma import sigma_rule_matches_event
 from threat_to_detection.services.pipeline import run_analysis
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -88,6 +99,11 @@ def build_analyze_parser() -> argparse.ArgumentParser:
         help="Allow downloads for missing CAPEC/ATT&CK datasets",
     )
     parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Force refresh of local datasets; implies --online",
+    )
+    parser.add_argument(
         "--strict",
         action="store_true",
         help="Return exit code 3 when the analysis is partial",
@@ -95,6 +111,8 @@ def build_analyze_parser() -> argparse.ArgumentParser:
     parser.add_argument("--logsource-category")
     parser.add_argument("--logsource-product")
     parser.add_argument("--logsource-service")
+    parser.add_argument("--positive-samples", help="JSONL file containing positive events")
+    parser.add_argument("--negative-samples", help="JSONL file containing negative events")
     parser.add_argument("--verbose", action="store_true", help="Enable diagnostic logging")
     return parser
 
@@ -121,6 +139,8 @@ def fetch_cves(argv: list[str]) -> int:
 
 def analyze_scenario(argv: list[str]) -> int:
     args = build_analyze_parser().parse_args(argv)
+    if args.offline and (args.online or args.refresh):
+        build_analyze_parser().error("--offline cannot be combined with --online or --refresh")
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s: %(message)s",
@@ -133,14 +153,37 @@ def analyze_scenario(argv: list[str]) -> int:
 
     output_dir = Path(args.output_dir)
     errors: list[str] = []
+    capec_destination = (
+        Path(args.capec_path) if args.capec_path else Path("data/cache/capec_latest.xml")
+    )
+    attack_destination = (
+        Path(args.attack_path) if args.attack_path else Path("data/cache/enterprise-attack.json")
+    )
+    capec_was_present = capec_destination.exists()
+    attack_was_present = attack_destination.exists()
+    online = args.online or args.refresh
     nvd_client = _build_nvd_client(
         args.nvd_fixture,
         args.nvd_cache,
         errors,
         offline=args.offline,
+        online=online,
+        refresh=args.refresh,
     )
-    capec_dataset = _load_capec(args.capec_path, args.offline, errors)
-    attack_dataset = _load_attack(args.attack_path, args.offline, errors)
+    capec_dataset = _load_capec(
+        args.capec_path,
+        args.offline,
+        errors,
+        online=online,
+        refresh=args.refresh,
+    )
+    attack_dataset = _load_attack(
+        args.attack_path,
+        args.offline,
+        errors,
+        online=online,
+        refresh=args.refresh,
+    )
     result = run_analysis(
         system,
         nvd_client=nvd_client,
@@ -149,8 +192,34 @@ def analyze_scenario(argv: list[str]) -> int:
         output_dir=output_dir,
         logsource_resolver=_logsource_override(args),
     )
-    all_errors = [*errors, *(error.message for error in result.errors)]
     document = result.to_mapping(system)
+    snapshots = _build_snapshots(
+        args,
+        nvd_client=nvd_client,
+        capec_path=capec_destination,
+        attack_path=attack_destination,
+        capec_was_present=capec_was_present,
+        attack_was_present=attack_was_present,
+        errors=errors,
+    )
+    document["execution"] = {
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "mode": _execution_mode(args, snapshots),
+        "network_allowed": online,
+        "input": display_path(args.scenario),
+    }
+    document["mode"] = document["execution"]["mode"]
+    document["snapshots"] = {name: snapshot.to_mapping() for name, snapshot in snapshots.items()}
+    document["metrics"] = _analysis_metrics(document)
+    document["evaluation"] = _evaluate_samples(
+        result.sigma_rules,
+        args.positive_samples,
+        args.negative_samples,
+        scenario_path=Path(args.scenario),
+        errors=errors,
+    )
+    document["metrics"].update(_evaluation_metrics(document["evaluation"]))
+    all_errors = [*errors, *(error.message for error in result.errors)]
     if all_errors:
         # Keep loader errors visible in the machine-readable report too.
         document["errors"] = [
@@ -167,6 +236,8 @@ def analyze_scenario(argv: list[str]) -> int:
             for message in errors
         ]
         document["status"] = "partial"
+    document["metrics"]["errors"] = len(document.get("errors", []))
+    document["counts"] = dict(document["metrics"])
     try:
         output_dir.mkdir(parents=True, exist_ok=True)
         (output_dir / "analysis.json").write_text(
@@ -176,7 +247,7 @@ def analyze_scenario(argv: list[str]) -> int:
         print(f"error: could not write analysis.json: {error}", file=sys.stderr)
         return 2
     try:
-        _write_manifest(output_dir, document, result)
+        _write_manifest(output_dir, document, result, snapshots)
     except OSError as error:
         print(f"error: could not write manifest.json: {error}", file=sys.stderr)
         return 2
@@ -190,35 +261,417 @@ def analyze_scenario(argv: list[str]) -> int:
     return 3 if args.strict and document.get("status") != "success" else 0
 
 
-def _write_manifest(output_dir: Path, document: dict[str, Any], result: Any) -> None:
+def _write_manifest(
+    output_dir: Path,
+    document: dict[str, Any],
+    result: Any,
+    snapshots: dict[str, DataSnapshot],
+) -> None:
     """Write a manifest for files owned by this analysis run."""
-    files: list[dict[str, Any]] = []
-    owned_paths = {Path("analysis.json")}
+    files: list[dict[str, Any]] = [{
+        "path": "analysis.json",
+        "kind": "analysis",
+        "status": "written",
+        "title": None,
+        "sha256": hashlib.sha256((output_dir / "analysis.json").read_bytes()).hexdigest(),
+        "depends_on": ["scenario", *snapshots],
+    }]
     for artifacts in result.sigma_artifacts.values():
         for artifact in artifacts:
-            if artifact.file:
-                owned_paths.add(Path(artifact.file))
-    for relative_path in sorted(owned_paths):
-        absolute_path = output_dir / relative_path
-        if not absolute_path.is_file():
-            continue
-        files.append(
-            {
-                "path": relative_path.as_posix(),
-                "kind": "analysis" if relative_path.name == "analysis.json" else "sigma",
-                "status": "written",
-                "sha256": hashlib.sha256(absolute_path.read_bytes()).hexdigest(),
-            }
-        )
+            relative_path = Path(artifact.file) if artifact.file else None
+            absolute_path = output_dir / relative_path if relative_path else None
+            files.append(
+                {
+                    "path": relative_path.as_posix() if relative_path else None,
+                    "kind": "sigma",
+                    "status": artifact.status,
+                    "title": artifact.title or None,
+                    "sha256": (
+                        hashlib.sha256(absolute_path.read_bytes()).hexdigest()
+                        if absolute_path and absolute_path.is_file()
+                        else None
+                    ),
+                    "depends_on": ["scenario", "nvd", "capec", "attack"],
+                }
+            )
+    input_path = Path(str(document.get("execution", {}).get("input", "")))
+    scenario_input = {
+        "path": input_path.as_posix(),
+        "sha256": file_sha256(input_path) if input_path.is_file() else None,
+    }
     manifest = {
         "schema_version": "1.0",
         "scenario_id": document.get("scenario_id"),
         "status": document.get("status"),
+        "mode": document.get("mode"),
+        "inputs": {
+            "scenario": scenario_input,
+            "snapshots": {name: snapshot.to_mapping() for name, snapshot in snapshots.items()},
+        },
         "files": files,
+        "relationships": [
+            {"artifact": item["path"], "inputs": item["depends_on"]} for item in files
+        ],
     }
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+
+
+def _build_snapshots(
+    args: argparse.Namespace,
+    *,
+    nvd_client: NvdClient | None,
+    capec_path: Path,
+    attack_path: Path,
+    capec_was_present: bool,
+    attack_was_present: bool,
+    errors: list[str],
+) -> dict[str, DataSnapshot]:
+    snapshots: dict[str, DataSnapshot] = {}
+    snapshots["nvd"] = _nvd_snapshot(args, nvd_client, errors)
+    snapshots["capec"] = _file_snapshot(
+        source="capec",
+        path=capec_path,
+        url=CAPEC_XML_URL,
+        mode=_dataset_mode(
+            args.capec_path,
+            args.refresh,
+            args.online,
+            capec_was_present,
+        ),
+        release=_capec_release(capec_path),
+        retrieved_at=_capec_date(capec_path),
+        normalization=("Parse active Attack_Pattern records", "Normalize CWE IDs to CWE-N"),
+        exclusions=("Reject records without CAPEC ID or name",),
+    )
+    snapshots["attack"] = _file_snapshot(
+        source="attack",
+        path=attack_path,
+        url=ATTACK_STIX_URL,
+        mode=_dataset_mode(
+            args.attack_path,
+            args.refresh,
+            args.online,
+            attack_was_present,
+        ),
+        release=_attack_release(attack_path),
+        retrieved_at=_attack_date(attack_path),
+        normalization=(
+            "Parse Enterprise ATT&CK STIX attack-patterns",
+            "Normalize external IDs to uppercase",
+            "Normalize CAPEC IDs to CAPEC-N",
+        ),
+        exclusions=("Exclude revoked or deprecated STIX objects",),
+    )
+    return snapshots
+
+
+def _file_snapshot(
+    *,
+    source: str,
+    path: Path,
+    url: str,
+    mode: str,
+    release: str | None,
+    retrieved_at: str | None,
+    normalization: tuple[str, ...],
+    exclusions: tuple[str, ...],
+) -> DataSnapshot:
+    raw_sha256 = file_sha256(path) if path.is_file() else None
+    return DataSnapshot(
+        source=source,
+        mode=mode,
+        url=url,
+        path=display_path(path),
+        release=release or (f"file:{raw_sha256[:16]}" if raw_sha256 else None),
+        retrieved_at=retrieved_at,
+        sha=release or raw_sha256,
+        raw_sha256=raw_sha256,
+        normalization=normalization,
+        exclusions=exclusions,
+    )
+
+
+def _nvd_snapshot(
+    args: argparse.Namespace,
+    client: NvdClient | None,
+    errors: list[str],
+) -> DataSnapshot:
+    normalization = (
+        "Select English descriptions and CWE references",
+        "Extract CVSS base score",
+        "Extract the first concrete CPE product and version",
+    )
+    exclusions = ("Ignore malformed vulnerability entries without a cve object",)
+    if args.nvd_fixture:
+        path = Path(args.nvd_fixture)
+        payload: dict[str, Any] = {}
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(value, dict):
+                payload = value
+        except (OSError, json.JSONDecodeError):
+            pass
+        return _file_snapshot(
+            source="nvd",
+            path=path,
+            url=NVD_CVE_URL,
+            mode="fixture",
+            release=payload.get("dataVersion") or payload.get("version"),
+            retrieved_at=payload.get("timestamp"),
+            normalization=normalization,
+            exclusions=exclusions,
+        )
+
+    records = tuple(getattr(client, "request_metadata", ())) if client else ()
+    if records:
+        raw_hashes = sorted(
+            str(record["raw_sha256"])
+            for record in records
+            if record.get("raw_sha256")
+        )
+        combined_hash = hashlib.sha256("\n".join(raw_hashes).encode("utf-8")).hexdigest()
+        modes = {record.get("mode") for record in records}
+        mode = "refresh" if "refresh" in modes else "online" if "online" in modes else "cache"
+        paths = sorted({str(record["path"]) for record in records if record.get("path")})
+        public_records = tuple(
+            {
+                **record,
+                "path": display_path(record["path"]) if record.get("path") else None,
+            }
+            for record in records
+        )
+        return DataSnapshot(
+            source="nvd",
+            mode=mode,
+            url=NVD_CVE_URL,
+            path=(
+                display_path(paths[0])
+                if len(paths) == 1
+                else display_path(args.nvd_cache) if args.nvd_cache else None
+            ),
+            release=next(
+                (record.get("release") for record in records if record.get("release")),
+                None,
+            ) or f"responses:{len(records)}",
+            retrieved_at=next(
+                (record.get("retrieved_at") for record in records if record.get("retrieved_at")),
+                None,
+            ),
+            sha=next((record.get("sha") for record in records if record.get("sha")), None)
+            or combined_hash,
+            raw_sha256=combined_hash,
+            normalization=normalization,
+            exclusions=exclusions,
+            records=public_records,
+        )
+
+    cache_path = Path(args.nvd_cache) if args.nvd_cache else None
+    return DataSnapshot(
+        source="nvd",
+        mode="refresh" if args.refresh else "cache",
+        url=NVD_CVE_URL,
+        path=display_path(cache_path) if cache_path else None,
+        normalization=normalization,
+        exclusions=exclusions,
+    )
+
+
+def _dataset_mode(
+    explicit_path: str | None,
+    refresh: bool,
+    online: bool,
+    was_present: bool,
+) -> str:
+    if explicit_path:
+        return "fixture"
+    if refresh:
+        return "refresh"
+    if was_present:
+        return "cache"
+    if online:
+        return "online"
+    return "cache"
+
+
+def _execution_mode(args: argparse.Namespace, snapshots: dict[str, DataSnapshot]) -> str:
+    modes = {snapshot.mode for snapshot in snapshots.values()}
+    if args.refresh:
+        return "refresh"
+    if args.online and "online" in modes:
+        return "online"
+    if "fixture" in modes:
+        return "fixture"
+    return "cache"
+
+
+def _capec_release(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError):
+        return None
+    return next(
+        (value for key, value in root.attrib.items() if key.lower() in {"version", "release"}),
+        None,
+    )
+
+
+def _capec_date(path: Path) -> str | None:
+    if not path.is_file():
+        return None
+    try:
+        root = ElementTree.parse(path).getroot()
+    except (OSError, ElementTree.ParseError):
+        return None
+    return next(
+        (value for key, value in root.attrib.items() if key.lower() in {"date", "last_modified"}),
+        None,
+    )
+
+
+def _attack_document(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def _attack_release(path: Path) -> str | None:
+    document = _attack_document(path)
+    if document.get("version"):
+        return str(document["version"])
+    objects = document.get("objects", [])
+    versions = sorted(
+        str(item["x_mitre_version"])
+        for item in objects
+        if isinstance(item, dict) and item.get("x_mitre_version")
+    )
+    return versions[-1] if versions else document.get("id")
+
+
+def _attack_date(path: Path) -> str | None:
+    objects = _attack_document(path).get("objects", [])
+    dates = sorted(
+        str(item["modified"])
+        for item in objects
+        if isinstance(item, dict) and item.get("modified")
+    )
+    return dates[-1] if dates else None
+
+
+def _analysis_metrics(document: dict[str, Any]) -> dict[str, int]:
+    assets = document.get("assets", {})
+    cves: set[str] = set()
+    cwes: set[str] = set()
+    capecs: set[str] = set()
+    techniques: set[str] = set()
+    requirements = 0
+    sigma_rules = 0
+    for asset in assets.values():
+        for vulnerability in asset.get("vulnerabilities", []):
+            cves.add(vulnerability["cve_id"])
+            cwes.update(vulnerability.get("cwes", []))
+        intermediate = asset.get("intermediate", {})
+        capecs.update(intermediate.get("capec_ids", []))
+        techniques.update(intermediate.get("technique_ids", []))
+        requirements += len(asset.get("detection_requirements", []))
+        sigma_rules += len(asset.get("sigma_rules", []))
+    return {
+        "assets": len(assets),
+        "cves": len(cves),
+        "cwes": len(cwes),
+        "capecs": len(capecs),
+        "techniques": len(techniques),
+        "detection_requirements": requirements,
+        "sigma_rules": sigma_rules,
+        "complete_paths": len(document.get("trace_paths", [])),
+        "candidate_paths": len(document.get("trace_paths", [])),
+        "mapping_gaps": len(document.get("mapping_gaps", [])),
+    }
+
+
+def _sample_path(explicit: str | None, scenario_path: Path, name: str) -> Path | None:
+    if explicit:
+        return Path(explicit)
+    candidate = scenario_path.parent / "samples" / name
+    return candidate if candidate.is_file() else None
+
+
+def _read_jsonl(path: Path, errors: list[str]) -> list[dict[str, Any]]:
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as error:
+        errors.append(f"Could not load sample file {path}: {error}")
+        return []
+    events: list[dict[str, Any]] = []
+    for line_number, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        try:
+            value = json.loads(line)
+        except json.JSONDecodeError as error:
+            errors.append(f"Could not parse sample file {path}:{line_number}: {error}")
+            continue
+        if not isinstance(value, dict):
+            errors.append(f"Sample event must be a JSON object: {path}:{line_number}")
+            continue
+        events.append(value)
+    return events
+
+
+def _evaluate_samples(
+    sigma_rules: dict[str, tuple[Any, ...]],
+    positive_path: str | None,
+    negative_path: str | None,
+    *,
+    scenario_path: Path,
+    errors: list[str],
+) -> dict[str, Any]:
+    paths = {
+        "positive": _sample_path(positive_path, scenario_path, "positive.jsonl"),
+        "negative": _sample_path(negative_path, scenario_path, "negative.jsonl"),
+    }
+    if not any(paths.values()):
+        return {"status": "not_run", "positive": None, "negative": None}
+
+    rules = tuple(rule for values in sigma_rules.values() for rule in values)
+    evaluation: dict[str, Any] = {"status": "pass"}
+    for label, path in paths.items():
+        if path is None:
+            evaluation[label] = None
+            continue
+        events = _read_jsonl(path, errors)
+        matched = sum(
+            any(sigma_rule_matches_event(rule, event) for rule in rules) for event in events
+        )
+        passed = matched == len(events) if label == "positive" else matched == 0
+        evaluation[label] = {
+            "path": display_path(path),
+            "count": len(events),
+            "matched": matched,
+            "unmatched": len(events) - matched,
+            "expected": "all_match" if label == "positive" else "none_match",
+            "result": "pass" if passed else "fail",
+        }
+        if not passed:
+            evaluation["status"] = "fail"
+    return evaluation
+
+
+def _evaluation_metrics(evaluation: dict[str, Any]) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for label in ("positive", "negative"):
+        sample = evaluation.get(label)
+        if sample:
+            result[f"{label}_samples"] = sample["count"]
+            result[f"{label}_matched"] = sample["matched"]
+    return result
 
 
 def _build_nvd_client(
@@ -227,12 +680,23 @@ def _build_nvd_client(
     errors: list[str],
     *,
     offline: bool = False,
+    online: bool = False,
+    refresh: bool = False,
 ) -> NvdClient | None:
-    if offline and not fixture:
+    cache_available = bool(
+        cache_dir
+        and Path(cache_dir).is_dir()
+        and any(Path(cache_dir).glob("*.json"))
+    )
+    if offline and not fixture and not cache_available:
         errors.append("Offline mode requires --nvd-fixture; NVD network access is disabled")
         return None
     if not fixture:
-        return NvdClient(cache_dir=cache_dir or None)
+        return NvdClient(
+            cache_dir=cache_dir or None,
+            allow_network=online or refresh,
+            refresh=refresh,
+        )
     try:
         payload = json.loads(Path(fixture).read_text(encoding="utf-8"))
         if not isinstance(payload, dict):
@@ -244,7 +708,8 @@ def _build_nvd_client(
     def opener(_request: Any, _timeout: float) -> dict[str, Any]:
         return payload
 
-    return NvdClient(cache_dir=None, opener=opener)
+    # The injected opener reads a local fixture; it is not a network boundary.
+    return NvdClient(cache_dir=None, opener=opener, allow_network=True)
 
 
 def _logsource_override(args: argparse.Namespace) -> dict[str, str] | None:
@@ -260,10 +725,17 @@ def _logsource_override(args: argparse.Namespace) -> dict[str, str] | None:
     return values or None
 
 
-def _load_capec(path: str | None, offline: bool, errors: list[str]):
+def _load_capec(
+    path: str | None,
+    offline: bool,
+    errors: list[str],
+    *,
+    online: bool = False,
+    refresh: bool = False,
+):
     destination = Path(path) if path else Path("data/cache/capec_latest.xml")
     collector = CapecCollector()
-    if not destination.exists() and not offline and not path:
+    if (not destination.exists() or refresh) and not offline and not path and online:
         try:
             collector.download(destination)
         except CapecDataError as error:
@@ -279,10 +751,17 @@ def _load_capec(path: str | None, offline: bool, errors: list[str]):
         return None
 
 
-def _load_attack(path: str | None, offline: bool, errors: list[str]):
+def _load_attack(
+    path: str | None,
+    offline: bool,
+    errors: list[str],
+    *,
+    online: bool = False,
+    refresh: bool = False,
+):
     destination = Path(path) if path else Path("data/cache/enterprise-attack.json")
     collector = AttackCollector()
-    if not destination.exists() and not offline and not path:
+    if (not destination.exists() or refresh) and not offline and not path and online:
         try:
             collector.download(destination)
         except AttackDataError as error:

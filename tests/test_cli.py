@@ -108,6 +108,27 @@ def test_analyze_cli_keeps_partial_results_when_datasets_are_missing(tmp_path: P
     assert document["assets"]["empty"]["vulnerabilities"] == []
 
 
+def test_analyze_strict_returns_three_for_partial_result(tmp_path: Path) -> None:
+    fixtures = Path(__file__).parent / "fixtures"
+    status = analyze_scenario(
+        [
+            str(Path(__file__).parents[1] / "evaluations/scenario.yaml"),
+            "--nvd-fixture",
+            str(fixtures / "nvd/cves.json"),
+            "--capec-fixture",
+            str(fixtures / "capec/attack_patterns.xml"),
+            "--attack-fixture",
+            str(fixtures / "attack/enterprise-attack.json"),
+            "--offline",
+            "--strict",
+            "--output-dir",
+            str(tmp_path / "artifacts"),
+        ]
+    )
+
+    assert status == 3
+
+
 def test_analyze_records_sigma_failure_without_losing_requirement(tmp_path: Path) -> None:
     from threat_to_detection.collectors.attack import AttackDataset
     from threat_to_detection.collectors.capec import CapecDataset

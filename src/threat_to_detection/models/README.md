@@ -9,5 +9,6 @@
 - `capec.py`: CAPEC Attack Pattern
 - `attack.py`: MITRE ATT&CK TechniqueとTactic
 - `sigma.py`: Sigma候補、出典、決定的ID、候補分類
+- `provenance.py`: fixture / cache / online / refreshの取得モードとraw hash
 
 ここではNVDやATT&CKのHTTP通信を行いません。入力が不正な場合は、後続処理に渡す前に検証します。

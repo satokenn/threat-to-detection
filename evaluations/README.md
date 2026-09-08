@@ -22,6 +22,8 @@ CVE-TEST-0001 → CWE-79 → CAPEC-100 → T1059 → DET0001 → Sigma
 
 評価結果の件数と考察は[`history.md`](history.md)、機械可読な記録は[`history.json`](history.json)、レビュー記録の雛形は[`review.md`](review.md)にあります。
 
+`analysis.json`の`mode`と`snapshots`には、fixture / cache / online / refreshの取得モード、入力URL、release、固定識別子、取得日、raw SHA-256、正規化・除外条件が記録されます。`manifest.json`ではシナリオと各スナップショットから`analysis.json`およびSigma生成物への関係を確認できます。Apache HTTP Server 2.4.50の未対応経路は、fixtureへ推測の対応を追加せずcounterexampleとして履歴に残します。
+
 ## 実データの反例
 
 Apache HTTP Server 2.4.50とCVE-2021-42013（CWE-22、CAPEC-126）は正規候補として調査しました。しかし現行ATT&CK EnterpriseスナップショットにはCAPEC-126からT1190への外部参照がないため、期待経路を推測で補わず、`CAPEC→ATT&CK`のcounterexampleとして扱います。
