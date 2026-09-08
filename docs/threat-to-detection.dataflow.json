@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "threat-to-detection DFD",
+    "output": "docs/threat-to-detection.dataflow.html",
+    "viewBox": [1080, 680],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "collection", "label": "収集", "focus": ["scenario", "cli", "nvd-client", "dataset-loader"], "note": "入力と外部データをプロセスへ取り込みます。" },
+      { "id": "mapping", "label": "保持と関連付け", "focus": ["nvd-cache", "dataset-cache", "pipeline"], "note": "データストアを参照して検知要件へ関連付けます。" },
+      { "id": "outputs", "label": "出力", "focus": ["pipeline", "generated-output"], "note": "分析レポート、Sigma、来歴情報を保存します。" }
+    ]
+  },
+  "stages": [
+    { "label": "外部入力" },
+    { "label": "外部データ" },
+    { "label": "プロセス" },
+    { "label": "データストア" },
+    { "label": "分析と出力" }
+  ],
+  "nodes": [
+    { "id": "scenario", "type": "external", "label": "E1 Scenario", "sublabel": "YAML input", "stage": 0, "row": 0, "tag": "外部エンティティ" },
+    { "id": "cli", "type": "backend", "label": "P1 CLI", "sublabel": "load / mode / output", "stage": 0, "row": 1, "tag": "プロセス" },
+    { "id": "nvd-api", "type": "external", "label": "E2 NVD API", "sublabel": "vulnerabilities[]", "stage": 1, "row": 0, "tag": "外部エンティティ" },
+    { "id": "reference-source", "type": "external", "label": "E3 CAPEC / ATT&CK", "sublabel": "XML / STIX", "stage": 1, "row": 2, "tag": "外部エンティティ" },
+    { "id": "nvd-client", "type": "backend", "label": "P2 NvdClient", "sublabel": "query / normalize", "stage": 2, "row": 1, "tag": "プロセス" },
+    { "id": "dataset-loader", "type": "backend", "label": "P3 Dataset loader", "sublabel": "normalize references", "stage": 2, "row": 2, "tag": "プロセス" },
+    { "id": "nvd-cache", "type": "database", "label": "D1 NVD cache", "sublabel": "raw CVE JSON", "stage": 3, "row": 0, "tag": "データストア" },
+    { "id": "dataset-cache", "type": "database", "label": "D2 Dataset cache", "sublabel": "lookup maps", "stage": 3, "row": 2, "tag": "データストア" },
+    { "id": "pipeline", "type": "backend", "label": "P4 Mapping", "sublabel": "CVE → CWE → ATT&CK", "stage": 4, "row": 1, "tag": "プロセス" },
+    { "id": "generated-output", "type": "database", "label": "D3 Outputs", "sublabel": "analysis / Sigma", "stage": 4, "row": 0, "tag": "データストア" }
+  ],
+  "flows": [
+    { "id": "scenario-to-cli", "from": "scenario", "to": "cli", "label": "SystemModel", "classification": "入力データ", "variant": "emphasis", "labelAt": [100, 200] },
+    { "id": "cli-to-nvd-client", "from": "cli", "to": "nvd-client", "label": "CPE query", "classification": "検索条件", "variant": "default", "route": "straight", "fromSide": "right", "toSide": "left" },
+    { "id": "nvd-client-to-api", "from": "nvd-client", "to": "nvd-api", "label": "CPE / CVE query", "classification": "HTTPS request", "variant": "security", "labelAt": [350, 220] },
+    { "id": "api-to-nvd-client", "from": "nvd-api", "to": "nvd-client", "label": "CVE JSON", "classification": "API response", "variant": "emphasis", "labelAt": [500, 220] },
+    { "id": "nvd-client-to-cache", "from": "nvd-client", "to": "nvd-cache", "label": "raw CVE JSON", "classification": "cache write", "variant": "default" },
+    { "id": "source-to-dataset-loader", "from": "reference-source", "to": "dataset-loader", "label": "CAPEC / ATT&CK", "classification": "reference data", "variant": "default" },
+    { "id": "dataset-loader-to-cache", "from": "dataset-loader", "to": "dataset-cache", "label": "normalized maps", "classification": "cache write", "variant": "default" },
+    { "id": "vulnerability-to-pipeline", "from": "nvd-client", "to": "pipeline", "label": "Vulnerability", "classification": "CVE / CWE / CVSS", "variant": "emphasis", "route": "straight", "fromSide": "right", "toSide": "left" },
+    { "id": "lookup-to-pipeline", "from": "dataset-cache", "to": "pipeline", "label": "lookup IDs", "classification": "CAPEC / ATT&CK", "variant": "emphasis" },
+    { "id": "pipeline-to-output", "from": "pipeline", "to": "generated-output", "label": "TracePath / gaps / Sigma", "classification": "output data", "variant": "emphasis", "labelAt": [960, 314] }
+  ]
+}
