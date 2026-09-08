@@ -46,9 +46,25 @@ def test_reproducible_evaluation_records_all_stage_counts(tmp_path: Path) -> Non
     assert len(document["mapping_gaps"]) == 2
 
 
-def test_evaluation_samples_satisfy_the_generated_candidate() -> None:
+def test_evaluation_samples_satisfy_the_generated_candidate(tmp_path: Path) -> None:
+    fixtures = Path(__file__).parent / "fixtures"
+    output_dir = tmp_path / "output"
+    assert analyze_scenario(
+        [
+            str(Path(__file__).parents[1] / "evaluations/scenario.yaml"),
+            "--nvd-fixture",
+            str(fixtures / "nvd/cves.json"),
+            "--capec-fixture",
+            str(fixtures / "capec/attack_patterns.xml"),
+            "--attack-fixture",
+            str(fixtures / "attack/enterprise-attack.json"),
+            "--offline",
+            "--output-dir",
+            str(output_dir),
+        ]
+    ) == 0
     sigma = yaml.safe_load(
-        next((Path("evaluations/output/sigma")).glob("*.yml")).read_text(encoding="utf-8")
+        next(output_dir.glob("sigma/*.yml")).read_text(encoding="utf-8")
     )
     selection = sigma["detection"]["selection"]
     assert selection == {"EventID": 1, "process.command_line|exists": True}

@@ -9,7 +9,13 @@
 - 完全経路: 1
 - ギャップ: 2（CAPEC-101 → ATT&CK、T1105 → Detection Requirement）
 - サンプル: 安全なJSONL正例1件・負例1件を用意。実攻撃の再現や本番検知性能の評価ではない
+- 出典: NVD / CAPEC / ATT&CKのURL、fixtureの固定識別子、raw SHA-256、正規化・除外条件を`analysis.json`と`manifest.json`で追跡
+- サンプル判定: 正例 `1/1`、負例 `0/1`（いずれも期待結果どおり）
 - 判定: `partial`。成功経路を保持しつつ、未解決の対応を明示できた
+
+### 機械可読な差分
+
+`history.json`の`diff.current`と`counterexamples`に、候補数・完全経路・ギャップ・Detection Requirement・Sigmaの比較値と、Apacheの未対応経路を記録する。ベースラインがない初回評価では`baseline: null`とし、未対応のATT&CK Techniqueを推測で追加しない。
 
 ### 考察
 

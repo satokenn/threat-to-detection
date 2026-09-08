@@ -9,6 +9,8 @@ Detection StrategyとAnalyticの`detects`関係、Data Component、ログソー�
 
 通信を伴うテストは、HTTPレスポンスをfixtureまたは差し替え可能な openerで再現します。テストから実際のNVD APIを呼び出しません。
 
+`analyze`ではfixtureまたはキャッシュを優先し、既定でネットワークへ接続しません。不足データの取得は`--online`、キャッシュの強制更新は`--refresh`で明示します。取得モード、URL、リリース、raw SHA-256、正規化・除外条件は分析結果へ保存されます。
+
 CAPECの配布データは公式ダウンロードページから取得します。取得したXMLの全量をGitへ含めず、テストでは`tests/fixtures/capec/`の最小XMLを使います。
 
 公式配布ページ: https://capec.mitre.org/data/downloads

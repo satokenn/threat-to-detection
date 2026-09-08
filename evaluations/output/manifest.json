@@ -2,18 +2,117 @@
   "schema_version": "1.0",
   "scenario_id": "fixture-web-system",
   "status": "partial",
+  "mode": "fixture",
+  "inputs": {
+    "scenario": {
+      "path": "evaluations/scenario.yaml",
+      "sha256": "2f4f1fd63c19d051ee49bc0db145be466e1b42a01941e9d3038773ce7ddcacd5"
+    },
+    "snapshots": {
+      "nvd": {
+        "source": "nvd",
+        "mode": "fixture",
+        "url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+        "path": "tests/fixtures/nvd/cves.json",
+        "release": "file:389039efe3dca0f9",
+        "retrieved_at": null,
+        "retrieved_date": null,
+        "sha": "389039efe3dca0f9996b6fe66815211be06dc4e61c09b2667f81cc155cd37ca5",
+        "raw_sha256": "389039efe3dca0f9996b6fe66815211be06dc4e61c09b2667f81cc155cd37ca5",
+        "normalization": [
+          "Select English descriptions and CWE references",
+          "Extract CVSS base score",
+          "Extract the first concrete CPE product and version"
+        ],
+        "exclusions": [
+          "Ignore malformed vulnerability entries without a cve object"
+        ]
+      },
+      "capec": {
+        "source": "capec",
+        "mode": "fixture",
+        "url": "https://capec.mitre.org/data/xml/capec_latest.xml",
+        "path": "tests/fixtures/capec/attack_patterns.xml",
+        "release": "file:5c1fedc7173e586e",
+        "retrieved_at": null,
+        "retrieved_date": null,
+        "sha": "5c1fedc7173e586e71ec18330d82f4b934bc2ec4a0e6cf6bf6d1bb95e65984e9",
+        "raw_sha256": "5c1fedc7173e586e71ec18330d82f4b934bc2ec4a0e6cf6bf6d1bb95e65984e9",
+        "normalization": [
+          "Parse active Attack_Pattern records",
+          "Normalize CWE IDs to CWE-N"
+        ],
+        "exclusions": [
+          "Reject records without CAPEC ID or name"
+        ]
+      },
+      "attack": {
+        "source": "attack",
+        "mode": "fixture",
+        "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json",
+        "path": "tests/fixtures/attack/enterprise-attack.json",
+        "release": "bundle--00000000-0000-4000-8000-000000000001",
+        "retrieved_at": null,
+        "retrieved_date": null,
+        "sha": "bundle--00000000-0000-4000-8000-000000000001",
+        "raw_sha256": "b62dcb30eb8146ffcfcddc5b00999e8137b63726c60b7a422f3908a3b224dc49",
+        "normalization": [
+          "Parse Enterprise ATT&CK STIX attack-patterns",
+          "Normalize external IDs to uppercase",
+          "Normalize CAPEC IDs to CAPEC-N"
+        ],
+        "exclusions": [
+          "Exclude revoked or deprecated STIX objects"
+        ]
+      }
+    }
+  },
   "files": [
     {
       "path": "analysis.json",
       "kind": "analysis",
       "status": "written",
-      "sha256": "06d828aa13b5188a253db2cf3196ebe27c0697f51b4870254fe9b7510a743e97"
+      "title": null,
+      "sha256": "172a151160127018e231c20a71f9c8863d39cbbaf19b69e1e64c1864db44b0e9",
+      "depends_on": [
+        "scenario",
+        "nvd",
+        "capec",
+        "attack"
+      ]
     },
     {
       "path": "sigma/web-server__T1059__DET0001__def734f878.yml",
       "kind": "sigma",
       "status": "written",
-      "sha256": "37bb8ed6ebfb1bd37187be3a3e861857a8acb757c99acf540690b9b50720f84a"
+      "title": "Process execution monitoring",
+      "sha256": "37bb8ed6ebfb1bd37187be3a3e861857a8acb757c99acf540690b9b50720f84a",
+      "depends_on": [
+        "scenario",
+        "nvd",
+        "capec",
+        "attack"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "artifact": "analysis.json",
+      "inputs": [
+        "scenario",
+        "nvd",
+        "capec",
+        "attack"
+      ]
+    },
+    {
+      "artifact": "sigma/web-server__T1059__DET0001__def734f878.yml",
+      "inputs": [
+        "scenario",
+        "nvd",
+        "capec",
+        "attack"
+      ]
     }
   ]
 }

@@ -1,12 +1,33 @@
 [
   {
     "evaluation_id": "fixture-web-system-001",
+    "schema_version": "1.0",
     "scenario": "evaluations/scenario.yaml",
-    "mode": "offline-fixture",
+    "mode": "fixture",
     "snapshot": {
       "nvd": "tests/fixtures/nvd/cves.json",
       "capec": "tests/fixtures/capec/attack_patterns.xml",
       "attack": "tests/fixtures/attack/enterprise-attack.json"
+    },
+    "sources": {
+      "nvd": {
+        "url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+        "release": "file:389039efe3dca0f9",
+        "sha": "389039efe3dca0f9996b6fe66815211be06dc4e61c09b2667f81cc155cd37ca5",
+        "raw_sha256": "389039efe3dca0f9996b6fe66815211be06dc4e61c09b2667f81cc155cd37ca5"
+      },
+      "capec": {
+        "url": "https://capec.mitre.org/data/xml/capec_latest.xml",
+        "release": "file:5c1fedc7173e586e",
+        "sha": "5c1fedc7173e586e71ec18330d82f4b934bc2ec4a0e6cf6bf6d1bb95e65984e9",
+        "raw_sha256": "5c1fedc7173e586e71ec18330d82f4b934bc2ec4a0e6cf6bf6d1bb95e65984e9"
+      },
+      "attack": {
+        "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json",
+        "release": "bundle--00000000-0000-4000-8000-000000000001",
+        "sha": "bundle--00000000-0000-4000-8000-000000000001",
+        "raw_sha256": "b62dcb30eb8146ffcfcddc5b00999e8137b63726c60b7a422f3908a3b224dc49"
+      }
     },
     "counts": {
       "assets": 2,
@@ -17,13 +38,37 @@
       "detection_requirements": 1,
       "sigma_rules": 1,
       "complete_paths": 1,
-      "mapping_gaps": 2
+      "candidate_paths": 1,
+      "mapping_gaps": 2,
+      "positive_samples": 1,
+      "positive_matched": 1,
+      "negative_samples": 1,
+      "negative_matched": 0
     },
     "sample_telemetry": {
       "positive_events": 1,
       "negative_events": 1,
-      "automated_rule_match": "not evaluated by the pipeline"
+      "positive_result": "pass",
+      "negative_result": "pass"
     },
+    "diff": {
+      "baseline": null,
+      "current": {
+        "complete_paths": 1,
+        "mapping_gaps": 2,
+        "detection_requirements": 1,
+        "sigma_rules": 1
+      }
+    },
+    "counterexamples": [
+      {
+        "scenario": "Apache HTTP Server 2.4.50 / CVE-2021-42013",
+        "path": "CVE-2021-42013 → CWE-22 → CAPEC-126",
+        "stage": "CAPEC→ATT&CK",
+        "reason": "The ATT&CK snapshot has no CAPEC-126 mapping; T1190 is not inferred.",
+        "alternative": "Keep as a counterexample and evaluate a snapshot-backed candidate."
+      }
+    ],
     "status": "partial",
     "notes": [
       "CAPEC-101 has no ATT&CK mapping in the fixture.",
