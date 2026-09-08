@@ -9,7 +9,6 @@ from xml.etree import ElementTree
 
 from threat_to_detection.models.capec import CapecAttackPattern
 
-
 CAPEC_XML_URL = "https://capec.mitre.org/data/xml/capec_latest.xml"
 
 

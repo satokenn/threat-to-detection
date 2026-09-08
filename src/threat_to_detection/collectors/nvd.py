@@ -16,9 +16,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from threat_to_detection.models.vulnerability import Vulnerability
 from threat_to_detection.models.system import Software, SystemModel
-
+from threat_to_detection.models.vulnerability import Vulnerability
 
 NVD_CVE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 JsonLoader = Callable[[Request, float], Any]

@@ -16,7 +16,6 @@ from threat_to_detection.models.detection import (
     merge_data_components,
 )
 
-
 ATTACK_STIX_URL = (
     "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/"
     "enterprise-attack/enterprise-attack.json"

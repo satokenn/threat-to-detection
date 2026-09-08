@@ -6,7 +6,6 @@ from pathlib import Path
 from threat_to_detection.cli import analyze_scenario
 from threat_to_detection.collectors.nvd import NvdClient
 
-
 ROOT = Path(__file__).parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 

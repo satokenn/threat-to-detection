@@ -5,7 +5,6 @@ from urllib.request import Request
 from threat_to_detection.collectors.nvd import NvdClient
 from threat_to_detection.models.system import Asset, Software, SystemModel
 
-
 FIXTURE = json.loads(
     (Path(__file__).parent / "fixtures/nvd/cves.json").read_text(encoding="utf-8")
 )

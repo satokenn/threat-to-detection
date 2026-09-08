@@ -3,7 +3,6 @@ from pathlib import Path
 from threat_to_detection.collectors.capec import CapecDataset
 from threat_to_detection.mappers.cwe_to_capec import map_cwe_to_capec, map_cwes_to_capec
 
-
 FIXTURE = Path(__file__).parent / "fixtures/capec/attack_patterns.xml"
 
 

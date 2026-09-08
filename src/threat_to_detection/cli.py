@@ -26,7 +26,6 @@ from threat_to_detection.models.system import load_system
 from threat_to_detection.reporters.sigma import sigma_rule_matches_event
 from threat_to_detection.services.pipeline import run_analysis
 
-
 LOGGER = logging.getLogger(__name__)
 
 
