@@ -15,6 +15,12 @@ def test_load_system_example() -> None:
     assert system.flows[0].destination == "web-server"
 
 
+def test_asset_logsource_is_preserved() -> None:
+    system = load_system("evaluations/scenario.yaml")
+
+    assert system.assets[0].logsource == {"category": "process_creation"}
+
+
 def test_invalid_asset_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "invalid.yaml"
     path.write_text("system:\n  assets:\n    - type: server\n", encoding="utf-8")

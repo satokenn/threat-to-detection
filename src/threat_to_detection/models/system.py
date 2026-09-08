@@ -49,6 +49,7 @@ class Asset(BaseModel):
     software: tuple[Software, ...] = ()
     exposed_to: tuple[str, ...] = ()
     logs: tuple[str, ...] = ()
+    logsource: dict[str, str] | None = None
 
 
 class Flow(BaseModel):
@@ -63,6 +64,15 @@ class SystemModel(BaseModel):
     assets: tuple[Asset, ...] = ()
     flows: tuple[Flow, ...] = ()
     metadata: dict[str, Any] = {}
+
+    @model_validator(mode="after")
+    def validate_asset_names(self) -> "SystemModel":
+        names = tuple(asset.name.strip() for asset in self.assets)
+        if any(not name for name in names):
+            raise ValueError("asset names must not be empty")
+        if len(set(names)) != len(names):
+            raise ValueError("asset names must be unique")
+        return self
 
 
 def build_cpe(vendor: str, product: str, version: str) -> str:
