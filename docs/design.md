@@ -25,14 +25,18 @@
 - CAPECの`Related_Weaknesses`を使ってCWEからCAPECを逆引きする
 - MITRE ATT&CK EnterpriseのSTIX JSONからTechniqueを読み込む
 - ATT&CKのCAPEC外部参照を使ってCAPECからTechniqueを逆引きする
+- ATT&CKのDetection Strategy / AnalyticからData Component、イベント、フィールドを検知要件へ正規化する
+- CVE → CWE → CAPEC → ATT&CK → Detection Requirement → Sigmaを統合実行する
+- 中間結果、完全経路、対応付けギャップ、Sigma出典をJSONで出力する
+- fixtureを使ったCLIのオフライン評価と、決定的なSigma候補・manifestを生成する
 
-### 3.2 これから実装する内容
+### 3.2 今後の拡張候補
 
-- CVE → CWE → CAPEC → ATT&CKの統合サービス
-- 対象システムの公開状況・通信経路を使った関連性分析
+- 対象システムの公開状況・通信経路を使った関連性分析の高度化
+- CVE → CWE → CAPEC → ATT&CK → 検知要件の対応根拠・信頼度の高度化
 - ATT&CKや攻撃候補から監視すべき挙動を整理する知識ベース
 - 必要ログと取得済みログの差分分析
-- Markdown / JSONレポート出力
+- 評価履歴・Markdownレポート出力の高度化
 - CISA KEVなどによる優先度付け
 
 上記の「これから実装する内容」は設計上の拡張候補であり、現在の実装済み機能とは区別する。

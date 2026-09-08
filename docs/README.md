@@ -5,6 +5,7 @@
 ## ドキュメント一覧
 
 - [`design.md`](design.md): システム全体の目的、構成、データフロー、責務、制約
+- [`agreement.md`](agreement.md): 検知分析・評価の目的、入力・出力・CLI・Sigma・評価・完了条件の合意
 - [`overall-architecture.html`](overall-architecture.html): 初見の読者向けの全体像アーキテクチャ
 - [`overall-architecture.architecture.json`](overall-architecture.architecture.json): アーキテクチャ図のArchify仕様
 
