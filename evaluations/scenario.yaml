@@ -1,0 +1,32 @@
+system:
+  metadata:
+    name: fixture-web-system
+    description: Reproducible and safe evaluation scenario backed by repository fixtures
+  assets:
+    - name: web-server
+      type: server
+      software:
+        - vendor: vendor
+          product: example-product
+          version: "1.0"
+      exposed_to:
+        - internet
+      logs:
+        - process_creation
+      logsource:
+        category: process_creation
+    - name: database
+      type: database
+      software:
+        - vendor: vendor
+          product: example-database
+          version: "1.0"
+      logs:
+        - database_audit
+  flows:
+    - from: internet
+      to: web-server
+      protocol: https
+    - from: web-server
+      to: database
+      protocol: tcp

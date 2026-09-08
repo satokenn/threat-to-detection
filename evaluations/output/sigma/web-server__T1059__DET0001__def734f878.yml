@@ -1,0 +1,41 @@
+title: Process execution monitoring
+logsource:
+  category: process_creation
+detection:
+  selection:
+    EventID: 1
+    process.command_line|exists: true
+  condition: selection
+id: c6b69fdc-f08e-5c9e-bf8b-08311354ebe2
+description: Observe suspicious process execution. Generated from ATT&CK telemetry
+  requirements; suspicious values were not specified.
+tags:
+- attack.t1059
+level: low
+status: experimental
+x_threat_to_detection:
+  cve_ids:
+  - CVE-TEST-0001
+  cwe_ids:
+  - CWE-79
+  capec_ids:
+  - CAPEC-100
+  notes:
+  - trace:web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001
+  source:
+  - ATT&CK detection strategy
+  source_id:
+  - DET0001
+  rationale:
+  - CVE → CWE → CAPEC → ATT&CK technique → detection requirement
+  provenance:
+  - source: pipeline
+    source_id: web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001
+    rationale: CVE → CWE → CAPEC → ATT&CK technique → detection requirement
+    cve_ids:
+    - CVE-TEST-0001
+    cwe_ids:
+    - CWE-79
+    capec_ids:
+    - CAPEC-100
+  rule_kind: detection_candidate

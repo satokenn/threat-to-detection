@@ -5,6 +5,7 @@
 現在は`nvd.py`がNVD CVE API 2.0に、`capec.py`がCAPEC公式XMLのダウンロード・解析に対応しています。NVDのAPIキーは`NVD_API_KEY`から読み込み、レスポンスは`data/cache/nvd/`にキャッシュします。CAPEC XMLは取得先を指定してローカルへ保存できます。
 
 `attack.py`はMITRE ATT&CK EnterpriseのSTIX JSONをダウンロード・解析します。Attack PatternのCAPEC外部参照とTacticを抽出します。
+Detection StrategyとAnalyticの`detects`関係、Data Component、ログソース、可変フィールドも正規化します。対応する検知情報がないTechniqueは空のタプルを返します。
 
 通信を伴うテストは、HTTPレスポンスをfixtureまたは差し替え可能な openerで再現します。テストから実際のNVD APIを呼び出しません。
 

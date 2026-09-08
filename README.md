@@ -23,7 +23,46 @@ uv sync
 uv run pytest
 uv run threat-to-detection examples/web-system.yaml
 uv run threat-to-detection fetch-cves --keyword "apache http server" --limit 10
+
+# エンドツーエンド分析（output/analysis.jsonとoutput/sigma/*.ymlを出力）
+uv run threat-to-detection analyze examples/web-system.yaml
+
+# 同梱fixtureを使ったネットワークなしの分析
+uv run threat-to-detection analyze examples/web-system.yaml \
+  --nvd-fixture tests/fixtures/nvd/cves.json \
+  --capec-fixture tests/fixtures/capec/attack_patterns.xml \
+  --attack-fixture tests/fixtures/attack/enterprise-attack.json \
+  --offline --output-dir output
 ```
+
+`analyze`は、一部の対応付けや外部レコードが欠落しても成功した経路を
+失わないよう、部分的な分析では終了コード0を返します。`analysis.json`の
+`status`と`errors`を確認してください。入力不正やレポート書き込み失敗は、
+従来どおり非0のエラーになります。
+
+`analysis.json`には、資産ごとのCVE / CWE / CAPEC / ATT&CK / Detection
+Requirement、完全な経路、対応付けのギャップ、生成Sigmaの出典が含まれます。
+Sigma候補には決定的な`id`と`detection_candidate`という`rule_kind`が付きます。
+これはATT&CKのテレメトリ要件から作った候補であり、本番ルールや実攻撃の検知結果ではありません。
+生成物の所有範囲とSHA-256は`manifest.json`に記録されます。
+
+## 再現可能な評価
+
+同梱の評価シナリオは、外部APIへ接続せずにパイプライン全体を確認できます。
+
+```bash
+PYTHONPATH=src python -m threat_to_detection.cli analyze evaluations/scenario.yaml \
+  --nvd-fixture tests/fixtures/nvd/cves.json \
+  --capec-fixture tests/fixtures/capec/attack_patterns.xml \
+  --attack-fixture tests/fixtures/attack/enterprise-attack.json \
+  --offline --output-dir evaluations/output
+```
+
+評価では、`CVE-TEST-0001 → CWE-79 → CAPEC-100 → T1059 → DET0001 → Sigma`
+の完全経路と、対応が途切れる2つのギャップを同時に確認できます。段階別の件数、
+多対多対応の影響、検知要件からSigmaへ自動化できる範囲と人のレビューが必要な境界は
+[`evaluations/README.md`](evaluations/README.md)と[`evaluations/history.md`](evaluations/history.md)
+に記録しています。
 
 uvを使わない場合は、仮想環境を作成したうえで開発用依存関係をインストールしてください。
 

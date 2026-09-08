@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "scenario_id": "fixture-web-system",
+  "status": "partial",
+  "files": [
+    {
+      "path": "analysis.json",
+      "kind": "analysis",
+      "status": "written",
+      "sha256": "06d828aa13b5188a253db2cf3196ebe27c0697f51b4870254fe9b7510a743e97"
+    },
+    {
+      "path": "sigma/web-server__T1059__DET0001__def734f878.yml",
+      "kind": "sigma",
+      "status": "written",
+      "sha256": "37bb8ed6ebfb1bd37187be3a3e861857a8acb757c99acf540690b9b50720f84a"
+    }
+  ]
+}
