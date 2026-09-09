@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-09T00:00:01Z","event_id":"cloud.audit","source":"synthetic-cloud","message":"safe synthetic configuration review","principal":"principal-anon","action":"configuration.review","resource":"resource-anon","outcome":"review"}

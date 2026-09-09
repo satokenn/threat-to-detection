@@ -4,7 +4,7 @@
 
 この文書は、`threat-to-detection` の検知分析をどのような目的で行い、どの入力・出力・評価基準を守るかを定める。実装者、分析者、レビュー担当者が同じ前提で作業できるように、現在の位置付けと将来の到達点を分けて記録する。
 
-この契約書の対象は、脆弱性情報から攻撃経路と検知要件を追跡し、検知候補を評価可能な形で出力するまでである。実環境で攻撃を検知したことや、生成したSigmaをそのまま本番で使用できることを意味しない。
+この契約書の対象は、脅威知識の入口から攻撃経路と検知要件・必要ログを追跡し、検知候補を評価可能な形で出力するまでである。入口はCVEに限定せず、公開されたマルウェア挙動、認証・ID、ネットワーク、クラウドの挙動も扱う。実環境で攻撃を検知したことや、生成したSigmaをそのまま本番で使用できることを意味しない。
 
 ## 2. 合意した位置付け
 
@@ -17,6 +17,7 @@
 - 必要なテレメトリと、検知候補に使える根拠を整理する
 - 対応付けが途切れた箇所や、人の判断が必要な箇所を隠さず示す
 - 同じスナップショット、入力、コマンドから同じ評価結果を再現する
+- CVE、マルウェア挙動、認証・ID、ネットワーク、クラウドという異なる入口を、共通の分析項目で比較する
 
 ### 2.2 将来の目的
 
@@ -51,6 +52,8 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 - 資産単位の脆弱性・攻撃経路・検知要件の追跡
 - 複数候補、複数経路、曖昧な対応の保存
 - Sigma候補の生成、内部検証、サンプルテレメトリによる評価
+- 入口ごとに「弱点または挙動 → 悪用・攻撃者行動 → 監視対象 → 必要ログ → 利用可能ログとの差分」を分析する
+- 複数シナリオを横断した分岐、経路脱落、ログ充足率、ベースラインと生成候補の比較
 - JSON、YAML、JSONL、Markdownによる機械可読・人間可読な記録
 
 ### 4.2 対象外
@@ -59,6 +62,7 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 - ATT&CKから本番用検知ルールへの完全自動変換
 - Sigmaルールの自動配布やSIEM / EDRとの本格連携
 - 実環境の資産・ログの自動収集
+- 実マルウェア、バイナリ、攻撃ペイロードの収集・実行・再現
 - AIによる最終的な攻撃・検知判断
 - 継続監視、定期更新、Web UI、SIEM固有の最適化
 
@@ -92,7 +96,28 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 
 検知候補として採用する最低条件は、NVD由来のCWE、追跡可能な対応経路、固定された製品バージョンがそろっていることである。これらを満たさない候補は、候補数を水増しせず、ギャップまたはcounterexampleとして記録する。
 
+### 5.1 信頼境界・認証・権限条件
+
+攻撃経路の「到達できる」と「必要な認証・権限を満たしている」は別の事実として扱う。`Asset.trust_zone` / `privilege_level`、`Flow.trust_boundary`、`Flow.authentication`、`Flow.authorization`を入力として保持し、分析JSONの`threat_analysis`にも出力する。シナリオには、必要に応じて`required_privilege`、`privilege_transition`、`required_authentication_logs`を明示できる。
+
+未指定の値は`unknown`として扱う。プロトコル名、信頼ゾーン名、フローの存在だけから認証・認可・権限を推測してはならない。視覚的なDFD全体境界は、対象システム内の`trust_boundary`とは異なる。DFDの仕様とHTMLは、この区別と入力フィールドを表示する。
+
 ## 6. 正規評価シナリオ
+
+### 6.0 多分野シナリオ群
+
+評価対象は、日付ごとにディレクトリを増やすのではなく、[`evaluations/scenarios/index.yaml`](../evaluations/scenarios/index.yaml)と同じ階層のシナリオファイルで管理する。現在の設計対象は次の10件である。
+
+| 分野 | 件数 | 入口 | 状態 |
+|---|---:|---|---|
+| vulnerability | 2 | CVE | fixture-backedの例、Apacheのcounterexample |
+| malware | 3 | 公開された抽象挙動 | 一部fixture-backed、未対応はpartial |
+| identity | 2 | 認証・IDの抽象挙動 | 未評価 |
+| network | 1 | 外部通信の抽象挙動 | 未評価 |
+| cloud | 1 | 管理プレーンの抽象挙動 | 未評価 |
+| control | 1 | 正常な管理操作 | 対照、未評価 |
+
+各シナリオは、CVEを持たない場合でも、`scenario_type`と`entrypoint`を明示し、弱点または挙動、悪用・攻撃者行動、監視、必要ログ、利用可能ログ、期待するgap、正例・負例、比較条件を記録する。現行fixtureにないTechniqueやDetection Strategyを推測で追加してはならない。評価結果の集計と考察は[`evaluations/report.md`](../evaluations/report.md)に記録する。
 
 ### 6.1 Canonical候補
 

@@ -1,0 +1,35 @@
+schema_version: "1.0"
+scenario_id: scenario-07-identity-authentication-anomaly
+title: 認証異常と正常利用を比較する
+scenario_type: identity
+status: not_evaluated
+entrypoint:
+  type: identity_behavior
+  source: public_behavior_knowledge
+  identifiers:
+    behavior: abstract_authentication_anomaly
+    attack_techniques: []
+analysis_chain:
+  weakness: 脆弱性ではなく、認証結果と利用元の変化を分析対象にする。
+  exploitation: 実ユーザーや実ドメインは使わず、匿名化した状態値だけを使う。
+  attacker_action: ATT&CK Techniqueの対応は現行fixtureにないため確定しない。
+  monitoring: Authentication、Device、Networkのイベントを比較する。
+  required_logs:
+    - event_type: identity.authentication
+      fields: [timestamp, event_id, user, source, outcome]
+available_logs: [identity_authentication]
+expected_gaps:
+  - stage: behavior-to-ATT&CK
+    reason: 認証異常に対応するID分野のTechniqueがfixtureにない。
+  - stage: baseline
+    reason: 正常な利用分布を測る実データが未提供である。
+positive_samples: ../samples/multidomain/scenario-07-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-07-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: []
+  result_policy: サンプルは形式確認用であり、異常検知モデルの性能を主張しない。

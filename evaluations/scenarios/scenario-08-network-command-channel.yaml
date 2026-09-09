@@ -1,0 +1,35 @@
+schema_version: "1.0"
+scenario_id: scenario-08-network-command-channel
+title: 外部通信を入口にコマンドチャネルの監視要件を分析する
+scenario_type: network
+status: not_evaluated
+entrypoint:
+  type: network_behavior
+  source: public_behavior_knowledge
+  identifiers:
+    behavior: abstract_external_command_channel
+    attack_techniques: []
+analysis_chain:
+  weakness: CVEではなく、外部との継続的な通信挙動を分析対象にする。
+  exploitation: 実ドメイン、IP、プロトコル悪用手順は含めない。
+  attacker_action: ATT&CK対応はfixtureに裏付けがないため確定しない。
+  monitoring: DNS、Network Connection、Processの時系列を監視する。
+  required_logs:
+    - event_type: network.connection
+      fields: [timestamp, event_id, source, destination]
+available_logs: [network_connection, dns]
+expected_gaps:
+  - stage: behavior-to-ATT&CK
+    reason: ネットワーク分野のTechniqueが現行fixtureにない。
+  - stage: correlation
+    reason: 複数ログソースの相関根拠が未定義である。
+positive_samples: ../samples/multidomain/scenario-08-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-08-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: []
+  result_policy: 候補生成ではなく、必要ログと不足データの設計を先に評価する。

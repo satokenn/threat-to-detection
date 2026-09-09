@@ -2,9 +2,9 @@
 
 ## 1. 目的
 
-脆弱性情報と対象システムの脅威モデルを関連付け、SOCが検知設計を検討するための候補情報を整理する。
+脅威知識と対象システムの観測可能性を関連付け、SOCが検知設計を検討するための候補情報を整理する。CVEは入口の一つであり、公開されたマルウェア挙動、認証・ID、ネットワーク、クラウドの挙動も同じ分析項目で扱う。
 
-このプロジェクトが目指すのは、CVEから検知ルールを完全自動生成することではない。脆弱性から攻撃パターン、攻撃者の行動、必要なログへ至る経路を追跡可能にし、どこまで機械的に整理でき、どこに人の判断が必要かを明らかにすることである。
+このプロジェクトが目指すのは、脅威知識から検知ルールを完全自動生成することではない。脆弱性や挙動から攻撃者の行動、必要なログへ至る経路を追跡可能にし、どこまで機械的に整理でき、どこに人の判断が必要かを明らかにすることである。
 
 ## 2. 対象読者
 
@@ -49,8 +49,8 @@
 flowchart TD
     A[対象システムの構成を入力]
     B[自システムへの影響を確認]
-    C[関連する脆弱性を抽出]
-    D[想定される攻撃を整理]
+    C[入口に応じた脅威知識を抽出]
+    D[弱点または挙動と悪用を整理]
     E[攻撃者の行動を整理]
     F[監視すべき挙動を整理]
     G[必要なログと取得済みログを比較]
@@ -59,17 +59,19 @@ flowchart TD
     A --> B --> C --> D --> E --> F --> G --> H
 ```
 
-このシステムは、単に脆弱性を一覧表示するのではなく、対象システムに関係する脆弱性を起点に、攻撃と検知設計の検討材料まで段階的に整理する。
+このシステムは、単に脆弱性や脅威名を一覧表示するのではなく、入口ごとの弱点または挙動を起点に、攻撃者の行動、監視対象、必要ログ、検知設計の検討材料まで段階的に整理する。
 
 ## 5. 情報連携の詳細
 
-全体像で示した処理を、今回利用する脆弱性・攻撃情報の体系に対応付ける。
+全体像で示した処理を、CVEを含む複数の入口と脆弱性・攻撃情報の体系に対応付ける。
 
 ```mermaid
 flowchart TD
     system[対象システムのソフトウェア]
+    entry[脅威知識の入口]
     nvd[NVD]
     cve[CVE]
+    behavior[公開された挙動知識]
     cwe[CWE]
     capec[CAPEC]
     attack[MITRE ATT&CK]
@@ -77,6 +79,8 @@ flowchart TD
 
     system -->|製品・バージョン照合| nvd
     nvd --> cve
+    entry --> behavior
+    behavior --> attack
     cve --> cwe
     cwe --> capec
     capec --> attack
@@ -116,8 +120,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    scenario["scenario.yaml"]
+    scenario["scenario.yaml / 評価シナリオ"]
     system["SystemModel"]
+    entry["入口<br/>CVE / 挙動知識"]
     cpe["Software.cpe_name"]
     cve["NVD CVE"]
     vulnerability["Vulnerability<br/>cve_id / cwes / cvss_score"]
@@ -125,7 +130,9 @@ flowchart TD
     attack["ATT&CK AttackTechnique"]
     detection["検知候補・必要ログ・不足ログ"]
 
-    scenario --> system --> cpe --> cve --> vulnerability --> capec --> attack --> detection
+    scenario --> system --> entry
+    entry -->|CVE| cpe --> cve --> vulnerability --> capec --> attack --> detection
+    entry -->|挙動知識| attack --> detection
 ```
 
 各段階の結果は、後続段階が直接Webページを参照せずに扱える共通モデルへ変換する。これにより、外部データの取得と分析ロジックを分離する。
@@ -178,6 +185,36 @@ system:
 - versionはYAMLで数値化されないよう文字列で記述する
 - 外部公開状況と通信経路は、脆弱性の存在と攻撃経路を分けて考えるために保持する
 - ログは種類を表す初期モデルであり、将来はコマンドラインや親子プロセスなどの項目へ細分化する
+
+### 9.1 信頼境界とアクセス条件
+
+資産には任意の`trust_zone`（例: `dmz`、`internal`）と`privilege_level`を、通信フローには任意の`trust_boundary`を記録できる。フローの`authentication`と`authorization`は、到達に必要な条件を明示するための構造化フィールドである。
+
+```yaml
+system:
+  assets:
+    - name: web-server
+      trust_zone: dmz
+      privilege_level: service
+    - name: database
+      trust_zone: internal
+  flows:
+    - from: web-server
+      to: database
+      trust_boundary: dmz-to-internal
+      authentication:
+        required: true
+        method: service_account
+        principal: web-service
+        identity_source: workload-identity
+      authorization:
+        required: true
+        roles: [read_only]
+        scopes: [database.read]
+        privilege: read
+```
+
+未指定の認証・認可・権限条件は`unknown`（JSONでは`null`または空配列）として保持し、`https`などのプロトコル、資産のゾーン名、フローの向きから認証済み・認可済みであると推測しない。分析結果では、対象資産のゾーン、関連フローの境界、認証・認可条件、シナリオで明示された必要権限・権限遷移・認証ログを追跡できるようにする。
 
 ## 10. 外部データソース
 

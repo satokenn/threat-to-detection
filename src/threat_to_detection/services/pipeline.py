@@ -128,6 +128,13 @@ class PipelineResult:
         }
         if system is not None:
             result["system"] = _system_mapping(system)
+            result["threat_analysis"] = _threat_analysis_mapping(self, system)
+            if system.scenario_type == "control":
+                result["analysis_outcome"] = "control"
+            elif self.traces or any(self.detection_requirements.values()):
+                result["analysis_outcome"] = "matched"
+            else:
+                result["analysis_outcome"] = "no_match"
         return result
 
 
@@ -398,6 +405,52 @@ def run_pipeline(
                                 if trace not in traces:
                                     traces.append(trace)
             requirements[asset] = tuple(mapped.values())
+    # Non-CVE scenarios enter at the ATT&CK technique stage directly.  This
+    # keeps malware/identity/network/cloud analyses on the same detection
+    # requirement and Sigma path without inventing a CVE or CAPEC relation.
+    if (
+        attack_dataset
+        and system.scenario.technique_ids
+        and system.scenario_type != "control"
+    ):
+        for asset in relevant:
+            mapped = {
+                (item.technique_id, item.strategy_id): item
+                for item in requirements.get(asset, ())
+            }
+            for technique_id in system.scenario.technique_ids:
+                normalized = technique_id.strip().upper()
+                requirements_for_technique = map_attack_to_detection(
+                    normalized, attack_dataset
+                )
+                if not requirements_for_technique:
+                    gaps.append(
+                        MappingGap(
+                            asset,
+                            normalized,
+                            f"{system.scenario.entrypoint_type}:{normalized}",
+                            "Technique→Requirement",
+                            "No detection requirement is mapped",
+                        )
+                    )
+                    continue
+                intermediate[asset]["technique_ids"] = _append_unique(
+                    intermediate[asset]["technique_ids"], normalized
+                )
+                for requirement in requirements_for_technique:
+                    mapped[(requirement.technique_id, requirement.strategy_id)] = requirement
+                    trace = TracePath(
+                        asset=asset,
+                        cve_id="",
+                        cwe_id="",
+                        capec_id="",
+                        technique_id=normalized,
+                        strategy_id=requirement.strategy_id,
+                        strategy_name=requirement.strategy_name,
+                    )
+                    if trace not in traces:
+                        traces.append(trace)
+            requirements[asset] = tuple(mapped.values())
     return PipelineResult(
         relevant,
         requirements,
@@ -449,9 +502,14 @@ def run_analysis(
         attack_dataset=attack_dataset,
         asset_vulnerabilities=asset_vulnerabilities,
     )
-    if not capec_dataset:
+    has_vulnerability_input = any(result.relevant_vulnerabilities.values())
+    if (
+        not capec_dataset
+        and not system.scenario.technique_ids
+        and system.scenario_type != "control"
+    ):
         errors.append(PipelineError("capec", "CAPEC dataset is unavailable"))
-    if not attack_dataset:
+    if not attack_dataset and system.scenario_type != "control":
         errors.append(PipelineError("attack", "ATT&CK dataset is unavailable"))
 
     sigma_rules: dict[str, tuple[SigmaRule, ...]] = {
@@ -460,7 +518,7 @@ def run_analysis(
     sigma_artifacts: dict[str, tuple[SigmaArtifact, ...]] = {
         asset: () for asset in result.relevant_vulnerabilities
     }
-    if capec_dataset and attack_dataset:
+    if attack_dataset and (capec_dataset or not has_vulnerability_input):
         for asset, requirements in result.detection_requirements.items():
             generated: list[SigmaRule] = []
             for requirement in requirements:
@@ -472,9 +530,11 @@ def run_analysis(
                     and path.strategy_id == requirement.strategy_id
                 ]
                 evidence = SigmaEvidence(
-                    cve_ids=tuple(dict.fromkeys(path.cve_id for path in paths)),
-                    cwe_ids=tuple(dict.fromkeys(path.cwe_id for path in paths)),
-                    capec_ids=tuple(dict.fromkeys(path.capec_id for path in paths)),
+                    cve_ids=tuple(dict.fromkeys(path.cve_id for path in paths if path.cve_id)),
+                    cwe_ids=tuple(dict.fromkeys(path.cwe_id for path in paths if path.cwe_id)),
+                    capec_ids=tuple(
+                        dict.fromkeys(path.capec_id for path in paths if path.capec_id)
+                    ),
                     notes=tuple(f"trace:{path.path_id}" for path in paths),
                     source="ATT&CK detection strategy",
                     source_id=requirement.strategy_id,
@@ -485,10 +545,12 @@ def run_analysis(
                             rationale=(
                                 "CVE → CWE → CAPEC → ATT&CK technique → "
                                 "detection requirement"
+                                if path.cve_id
+                                else "Threat entrypoint → ATT&CK technique → detection requirement"
                             ),
-                            cve_ids=(path.cve_id,),
-                            cwe_ids=(path.cwe_id,),
-                            capec_ids=(path.capec_id,),
+                            cve_ids=(path.cve_id,) if path.cve_id else (),
+                            cwe_ids=(path.cwe_id,) if path.cwe_id else (),
+                            capec_ids=(path.capec_id,) if path.capec_id else (),
                         )
                         for path in paths
                     ),
@@ -793,3 +855,173 @@ def _requirement_mapping(item: DetectionRequirement) -> dict[str, Any]:
             for analytic in item.analytics
         ],
     }
+
+
+def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> list[dict[str, Any]]:
+    """Build the common, domain-neutral analysis records.
+
+    Each asset/requirement pair records the complete context needed for a
+    report: the threat entrypoint, attacker action and ATT&CK relation, the
+    telemetry requested by ATT&CK, and the telemetry actually declared by the
+    scenario.  No relation is inferred when an upstream mapping is absent.
+    """
+    context = system.scenario
+    entrypoint = context.entrypoint.model_dump(mode="json") if context.entrypoint else None
+    records: list[dict[str, Any]] = []
+    for asset_model in system.assets:
+        asset = asset_model.name
+        requirements = result.detection_requirements.get(asset, ())
+        for requirement in requirements:
+            required = tuple(
+                dict.fromkeys((*context.required_telemetry, *requirement.required_logs))
+            )
+            available = tuple(asset_model.logs)
+            coverage = _telemetry_coverage(required, available)
+            records.append(
+                {
+                    "asset": asset,
+                    "scenario_type": context.scenario_type,
+                    "entrypoint_type": context.entrypoint_type,
+                    "entrypoint": entrypoint,
+                    "weakness_ids": list(context.weakness_ids),
+                    "attack_pattern_ids": list(context.attack_pattern_ids),
+                    "attacker_actions": list(context.attacker_actions),
+                    "technique_ids": [requirement.technique_id],
+                    "detection_strategy_ids": [requirement.strategy_id],
+                    "analytic_ids": [item.analytic_id for item in requirement.analytics],
+                    "required_telemetry": list(required),
+                    "available_telemetry": list(available),
+                    "coverage": coverage,
+                    **_security_analysis_mapping(system, asset_model),
+                    "required_privilege": context.required_privilege,
+                    "privilege_transition": context.privilege_transition,
+                    "required_authentication_logs": list(context.required_authentication_logs),
+                    "evidence": list(context.evidence),
+                    "rationale": context.rationale,
+                    "confidence": context.confidence,
+                    "mapping_gaps": [
+                        gap.to_mapping()
+                        for gap in result.mapping_gaps
+                        if gap.asset == asset
+                    ],
+                }
+            )
+    # A direct technique with no detection strategy is still an analysis
+    # record.  Keeping it visible is important for counterexamples.  The same
+    # fallback also keeps CVE scenarios with an unresolved mapping visible.
+    if not records:
+        for asset_model in system.assets:
+            asset_gaps = [
+                gap.to_mapping() for gap in result.mapping_gaps if gap.asset == asset_model.name
+            ]
+            required = tuple(context.required_telemetry)
+            inferred_techniques = tuple(
+                result.intermediates.get(asset_model.name, {}).get("technique_ids", ())
+            )
+            records.append(
+                {
+                    "asset": asset_model.name,
+                    "scenario_type": context.scenario_type,
+                    "entrypoint_type": context.entrypoint_type,
+                    "entrypoint": entrypoint,
+                    "weakness_ids": list(context.weakness_ids),
+                    "attack_pattern_ids": list(context.attack_pattern_ids),
+                    "attacker_actions": list(context.attacker_actions),
+                    "technique_ids": list(context.technique_ids or inferred_techniques),
+                    "detection_strategy_ids": [],
+                    "analytic_ids": [],
+                    "required_telemetry": list(required),
+                    "available_telemetry": list(asset_model.logs),
+                    "coverage": _telemetry_coverage(required, tuple(asset_model.logs)),
+                    **_security_analysis_mapping(system, asset_model),
+                    "required_privilege": context.required_privilege,
+                    "privilege_transition": context.privilege_transition,
+                    "required_authentication_logs": list(context.required_authentication_logs),
+                    "evidence": list(context.evidence),
+                    "rationale": context.rationale,
+                    "confidence": context.confidence,
+                    "mapping_gaps": asset_gaps,
+                }
+            )
+    return records
+
+
+def _telemetry_coverage(required: tuple[str, ...], available: tuple[str, ...]) -> dict[str, Any]:
+    """Compare human ATT&CK names and scenario log slugs consistently."""
+    available_keys = {_telemetry_key(value) for value in available}
+    covered = tuple(value for value in required if _telemetry_key(value) in available_keys)
+    missing = tuple(value for value in required if _telemetry_key(value) not in available_keys)
+    ratio = len(covered) / len(required) if required else 1.0
+    return {
+        "required": list(required),
+        "available": list(available),
+        "covered": list(covered),
+        "missing": list(missing),
+        "coverage_ratio": ratio,
+        "status": "complete" if not missing else ("unavailable" if not covered else "partial"),
+    }
+
+
+def _security_analysis_mapping(system: SystemModel, asset: Any) -> dict[str, Any]:
+    """Expose declared trust and access prerequisites without guessing.
+
+    A flow is associated with an asset only when that asset is one of its
+    endpoints.  External endpoints such as ``internet`` remain valid and are
+    retained in the output.  Missing values are represented as ``None`` or an
+    empty collection, never inferred from the protocol or zone names.
+    """
+    flows = (
+        flow
+        for flow in system.flows
+        if flow.source == asset.name or flow.destination == asset.name
+    )
+    flow_security: list[dict[str, Any]] = []
+    for flow in flows:
+        flow_security.append(
+            {
+                "from": flow.source,
+                "to": flow.destination,
+                "protocol": flow.protocol,
+                "trust_boundary": flow.trust_boundary,
+                "authentication": (
+                    flow.authentication.model_dump(mode="json")
+                    if flow.authentication is not None
+                    else None
+                ),
+                "authorization": (
+                    flow.authorization.model_dump(mode="json")
+                    if flow.authorization is not None
+                    else None
+                ),
+            }
+        )
+    return {
+        "trust_zone": asset.trust_zone,
+        "privilege_level": asset.privilege_level,
+        "trust_boundaries": list(
+            dict.fromkeys(
+                item["trust_boundary"] for item in flow_security if item["trust_boundary"]
+            )
+        ),
+        "authentication_conditions": [
+            item["authentication"] for item in flow_security if item["authentication"] is not None
+        ],
+        "authorization_conditions": [
+            item["authorization"] for item in flow_security if item["authorization"] is not None
+        ],
+        "flow_security": flow_security,
+    }
+
+
+def _telemetry_key(value: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", "_", value.casefold()).strip("_")
+    aliases = {
+        "process_creation": "process_creation",
+        "process_execution": "process_creation",
+        "file_access": "file_event",
+        "file_activity": "file_event",
+        "network_connection_creation": "network_connection",
+        "network_connection": "network_connection",
+        "dns_query": "dns",
+    }
+    return aliases.get(normalized, normalized)

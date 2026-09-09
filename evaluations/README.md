@@ -22,6 +22,21 @@ CVE-TEST-0001 → CWE-79 → CAPEC-100 → T1059 → DET0001 → Sigma
 
 評価結果の件数と考察は[`history.md`](history.md)、機械可読な記録は[`history.json`](history.json)、レビュー記録の雛形は[`review.md`](review.md)にあります。
 
+## 多分野シナリオ
+
+脆弱性だけでは「データ分析」の比較が狭くなるため、入口の異なる10件を[`scenarios/index.yaml`](scenarios/index.yaml)に定義しています。
+
+- vulnerability: CVEを入口にした2件（fixtureで検証できる例と、Apacheのcounterexample）
+- malware: 安全な抽象挙動を入口にした3件
+- identity: 認証・IDの挙動を入口にした2件
+- network: 外部通信の挙動を入口にした1件
+- cloud: 管理プレーンの挙動を入口にした1件
+- control: 正常な管理操作を対照にした1件
+
+各シナリオには、`scenario_type`、`entrypoint`、弱点または挙動から必要ログまでの分析チェーン、利用可能ログ、期待するgap、正例・負例JSONL、ベースラインと生成候補の比較欄があります。人間向けの集計・考察テンプレートは[`report.md`](report.md)です。
+
+現行fixtureで裏付けられないTechniqueやDetection Strategyは、IDを推測せず`not_evaluated`または`counterexample`としています。未評価の値を実測結果として扱わないでください。実マルウェア、バイナリ、攻撃ペイロードは使用しません。
+
 `analysis.json`の`mode`と`snapshots`には、fixture / cache / online / refreshの取得モード、入力URL、release、固定識別子、取得日、raw SHA-256、正規化・除外条件が記録されます。`manifest.json`ではシナリオと各スナップショットから`analysis.json`およびSigma生成物への関係を確認できます。Apache HTTP Server 2.4.50の未対応経路は、fixtureへ推測の対応を追加せずcounterexampleとして履歴に残します。
 
 ## 実データの反例

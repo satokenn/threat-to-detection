@@ -1,0 +1,55 @@
+schema_version: "1.0"
+title: 多分野の脅威知識から検知要件を分析する評価シナリオ
+purpose: >-
+  CVEだけを入口にせず、脆弱性、マルウェア、認証・ID、ネットワーク、
+  クラウドという異なる入口を同じ分析項目で比較するためのシナリオ一覧。
+  ここにある未評価シナリオは設計と安全なテレメトリ例を提供するものであり、
+  実測結果を意味しない。
+data_safety:
+  real_malware: false
+  binaries: false
+  exploit_payloads: false
+  telemetry: safe_synthetic_jsonl
+  external_network_in_ci: false
+evaluation_status: planned
+scenarios:
+  - id: scenario-01-cve-example-process
+    file: scenario-01-cve-example-process.yaml
+    domain: vulnerability
+    status: fixture_backed
+  - id: scenario-02-cve-apache-counterexample
+    file: scenario-02-cve-apache-counterexample.yaml
+    domain: vulnerability
+    status: counterexample
+  - id: scenario-03-malware-process-execution
+    file: scenario-03-malware-process-execution.yaml
+    domain: malware
+    status: fixture_backed
+  - id: scenario-04-malware-ingress-transfer
+    file: scenario-04-malware-ingress-transfer.yaml
+    domain: malware
+    status: fixture_backed_partial
+  - id: scenario-05-malware-staged-behavior
+    file: scenario-05-malware-staged-behavior.yaml
+    domain: malware
+    status: fixture_backed_partial
+  - id: scenario-06-identity-credential-access
+    file: scenario-06-identity-credential-access.yaml
+    domain: identity
+    status: not_evaluated
+  - id: scenario-07-identity-authentication-anomaly
+    file: scenario-07-identity-authentication-anomaly.yaml
+    domain: identity
+    status: not_evaluated
+  - id: scenario-08-network-command-channel
+    file: scenario-08-network-command-channel.yaml
+    domain: network
+    status: not_evaluated
+  - id: scenario-09-cloud-control-plane
+    file: scenario-09-cloud-control-plane.yaml
+    domain: cloud
+    status: not_evaluated
+  - id: scenario-10-control-normal-administration
+    file: scenario-10-control-normal-administration.yaml
+    domain: control
+    status: control_not_evaluated

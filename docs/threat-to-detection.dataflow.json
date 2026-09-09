@@ -6,10 +6,19 @@
     "output": "docs/threat-to-detection.dataflow.html",
     "viewBox": [1080, 680],
     "quality_profile": "showcase",
+    "security_model": {
+      "description": "対象システムの視覚的な図全体境界と、データモデル上の信頼境界を区別する。",
+      "asset_fields": ["trust_zone", "privilege_level"],
+      "flow_fields": ["trust_boundary", "authentication", "authorization"],
+      "authentication_fields": ["required", "method", "principal", "identity_source"],
+      "authorization_fields": ["required", "roles", "scopes", "privilege"],
+      "unknown_policy": "未指定の認証・認可・権限条件はunknownとして保持し、プロトコルやゾーンから推測しない。"
+    },
     "views": [
       { "id": "collection", "label": "収集", "focus": ["scenario", "cli", "nvd-client", "dataset-loader"], "note": "入力と外部データをプロセスへ取り込みます。" },
       { "id": "mapping", "label": "保持と関連付け", "focus": ["nvd-cache", "dataset-cache", "pipeline"], "note": "データストアを参照して検知要件へ関連付けます。" },
-      { "id": "outputs", "label": "出力", "focus": ["pipeline", "generated-output"], "note": "分析レポート、Sigma、来歴情報を保存します。" }
+      { "id": "outputs", "label": "出力", "focus": ["pipeline", "generated-output"], "note": "分析レポート、Sigma、来歴情報を保存します。" },
+      { "id": "security-context", "label": "信頼境界とアクセス条件", "focus": ["scenario", "pipeline"], "note": "SystemModelのtrust zone / boundary、認証・認可条件を確認します。" }
     ]
   },
   "stages": [

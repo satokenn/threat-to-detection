@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-07T00:00:01Z","event_id":"identity.authentication","source":"synthetic-identity","message":"safe synthetic authentication anomaly label","user":"user-anon","outcome":"review","source_zone":"test-zone"}
