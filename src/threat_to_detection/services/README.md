@@ -3,3 +3,5 @@
 Collector、Mapper、Analyzerを処理順に組み合わせるアプリケーション層です。
 
 CLIから呼び出す処理や、対象システム単位の一連のワークフローはここに置きます。各ステージの詳細な判断は、対応するcollector・mapper・analyzerへ分離します。
+
+`threat_universe.py`は、公開Techniqueを参照する候補母集団を固定seedで抽出し、候補別の適用プロファイルを対象SystemModelへ照合します。scenario catalogの条件fixtureとは別の評価経路です。

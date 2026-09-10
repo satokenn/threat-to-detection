@@ -1,0 +1,23 @@
+schema_version: "1.0"
+title: 脅威モデル判定境界の安全な条件fixture
+purpose: >-
+  脅威の実例を表さず、通信経路・信頼境界・権限・条件未指定を
+  判定機構が区別できることだけを確認する。
+evaluation_status: measured_fixture_offline
+scenarios:
+  - id: scenario-11-threat-model-blocked-no-flow
+    file: scenario-11-threat-model-blocked-no-flow.yaml
+    domain: applicability_fixture
+    status: condition_fixture
+  - id: scenario-12-threat-model-blocked-boundary
+    file: scenario-12-threat-model-blocked-boundary.yaml
+    domain: applicability_fixture
+    status: condition_fixture
+  - id: scenario-13-threat-model-blocked-privilege
+    file: scenario-13-threat-model-blocked-privilege.yaml
+    domain: applicability_fixture
+    status: condition_fixture
+  - id: scenario-14-threat-model-unknown-access
+    file: scenario-14-threat-model-unknown-access.yaml
+    domain: applicability_fixture
+    status: condition_fixture

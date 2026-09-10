@@ -107,12 +107,12 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 
 ### 6.0 多分野シナリオ群
 
-評価対象は、日付ごとにディレクトリを増やすのではなく、[`evaluations/scenarios/index.yaml`](../evaluations/scenarios/index.yaml)と同じ階層のシナリオファイルで管理する。現在の設計対象は次の10件である。
+評価対象は、日付ごとにディレクトリを増やすのではなく、[`evaluations/scenarios/index.yaml`](../evaluations/scenarios/index.yaml)と同じ階層のシナリオファイルで管理する。現在の設計対象は次の10件である。判定機構だけを確認する4件は、別のcondition fixture catalogで管理する。
 
 | 分野 | 件数 | 入口 | 状態 |
 |---|---:|---|---|
 | vulnerability | 2 | CVE | fixture-backedの例、Apacheのcounterexample |
-| malware | 3 | 公開された抽象挙動 | 一部fixture-backed、未対応はpartial |
+| malware | 3 | 公開された抽象挙動 | 一部fixture-backed |
 | identity | 2 | 認証・IDの抽象挙動 | 未評価 |
 | network | 1 | 外部通信の抽象挙動 | 未評価 |
 | cloud | 1 | 管理プレーンの抽象挙動 | 未評価 |
@@ -205,6 +205,8 @@ threat-to-detection analyze scenario.yaml [オプション]
 - `--output-dir`: 出力先を指定する。通常の最新結果は`output/`に置く
 - 資産ごとの`logsource`を読み取り、必要に応じてCLI指定で明示的に上書きする
 - `--verbose`: マッピングや評価の詳細を表示する
+- `evaluate-scenarios --index scenarios/condition-fixtures.yaml`: 判定境界fixtureのexpected_outcomeを検証する
+- `evaluate-threat-universe --universe threat-universe.yaml`: 公開Technique候補を固定seedで抽出して対象システムへ照合する
 
 既存利用者向けの`run_pipeline`呼び出しは互換性ラッパーとして維持する。新しいCLIや出力契約を追加しても、既存の基本的なパイプライン利用を理由なく破壊しない。
 
@@ -213,7 +215,7 @@ threat-to-detection analyze scenario.yaml [オプション]
 | コード | 意味 |
 |---:|---|
 | `0` | 完全成功、または通常モードでの部分成功。対応なし（no-match）もエラーではない |
-| `3` | `--strict`指定時の部分成功。完全な経路がない、または未解決のギャップがある |
+| `3` | `--strict`指定時の部分成功、または`expected_outcome`の不一致 |
 | `2` | 入力不正、データ取得失敗、解析不能などの致命的失敗 |
 
 完全な経路が0件でも、入力が正常で分析が実行できた場合はno-match successとして扱う。no-matchをmapping failureや取得失敗に偽装しない。
@@ -268,10 +270,12 @@ manifestにない利用者ファイルは削除・上書きしない。再実行
 
 ### 9.4 評価結果の可視化
 
-評価A/BのJSONは、評価ロジックを再実行せずに集計・可視化できる入力成果物とする。`visualize-evaluations`は、評価Aの累積・段階間到達率と、評価Bのシナリオ別の`applicable`・`blocked`・`unknown`および理由を、集計CSV/JSONと静的SVGとして出力する。
+評価A/BのJSONは、評価ロジックを再実行せずに集計・可視化できる入力成果物とする。`visualize-evaluations`は、評価Aの累積・段階間到達率と、評価Bのシナリオ別の`applicable`・`blocked`・`unknown`および理由を、集計CSV/JSONと静的SVGとして出力する。公開Technique母集団の選別は`evaluate-threat-universe`と専用の機械可読結果・レポートで評価する。
 
 - 既定の評価Bシナリオが入力に存在しない場合、0件として補完せず入力エラーにする
 - `unknown`は`blocked`や候補削減数へ合算しない
+- 脅威候補母集団は候補生成と適用可否を分離し、固定seed・抽出集合・候補別根拠を保存する
+- YAMLの`expected_outcome`は実測結果と照合し、不一致時はCLIを失敗させる
 - 評価結果に含まれる件数と図の値は同じ集計結果から生成する
 - SVGはヘッドレスCIで生成できる静的成果物とし、外部ネットワークや固定値に依存しない
 

@@ -17,6 +17,7 @@ ScenarioType = Literal[
     "network",
     "cloud",
     "control",
+    "evaluation_fixture",
 ]
 EntrypointType = Literal[
     "cve",
@@ -232,6 +233,8 @@ class ScenarioContext(BaseModel):
             raise ValueError("cloud scenarios need a cloud_event or technique entrypoint")
         if self.scenario_type == "control" and self.entrypoint_type != "control":
             raise ValueError("control scenarios need a control entrypoint")
+        if self.scenario_type == "evaluation_fixture" and self.entrypoint_type != "technique":
+            raise ValueError("evaluation fixtures need a technique entrypoint")
 
 
 class TelemetryCoverage(BaseModel):

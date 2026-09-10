@@ -30,6 +30,10 @@ from threat_to_detection.services.cve_selection import (
 )
 from threat_to_detection.services.multidomain import evaluate_catalog, render_report
 from threat_to_detection.services.pipeline import run_analysis
+from threat_to_detection.services.threat_universe import (
+    evaluate_threat_universe,
+    render_threat_universe_report,
+)
 from threat_to_detection.services.visualization import (
     DEFAULT_SCENARIO_IDS,
     generate_evaluation_visualizations,
@@ -222,6 +226,18 @@ def build_evaluate_scenarios_parser() -> argparse.ArgumentParser:
     parser.add_argument("--nvd-fixture")
     parser.add_argument("--output", default="evaluations/multidomain-results.json")
     parser.add_argument("--report", default="evaluations/report.md")
+    return parser
+
+
+def build_evaluate_threat_universe_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="threat-to-detection evaluate-threat-universe",
+        description="Sample and evaluate a source-referenced threat universe offline",
+    )
+    parser.add_argument("--universe", default="evaluations/threat-universe.yaml")
+    parser.add_argument("--system", help="Override the target system in the universe document")
+    parser.add_argument("--output", default="evaluations/threat-universe-results.json")
+    parser.add_argument("--report", default="evaluations/threat-universe-report.md")
     return parser
 
 
@@ -480,7 +496,35 @@ def evaluate_scenarios_command(argv: list[str]) -> int:
     print(f"evaluation: {output}")
     print(f"report: {report}")
     print(f"scenarios: {result['summary']['scenario_count']}")
+    expectation_failures = sum(
+        item.get("expected_outcome", {}).get("status") == "failed"
+        for item in result["scenarios"]
+    )
+    if expectation_failures:
+        print(f"expected outcome failures: {expectation_failures}", file=sys.stderr)
+        return 3
     return 0
+
+
+def evaluate_threat_universe_command(argv: list[str]) -> int:
+    args = build_evaluate_threat_universe_parser().parse_args(argv)
+    try:
+        result = evaluate_threat_universe(args.universe, system_path=args.system)
+        output = Path(args.output)
+        report = Path(args.report)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        report.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report.write_text(render_threat_universe_report(result), encoding="utf-8")
+    except (OSError, ValueError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+    print(f"evaluation: {output}")
+    print(f"report: {report}")
+    print(f"population: {result['summary']['population_count']}")
+    print(f"sampled: {result['summary']['sampled_candidate_count']}")
+    print(f"expected_outcome: {result['expected_outcome']['status']}")
+    return 0 if result["expected_outcome"]["status"] == "passed" else 3
 
 
 def visualize_evaluations_command(argv: list[str]) -> int:
@@ -1190,6 +1234,8 @@ def main(argv: list[str] | None = None) -> int:
         return evaluate_cves_command(argv[1:])
     if argv and argv[0] == "evaluate-scenarios":
         return evaluate_scenarios_command(argv[1:])
+    if argv and argv[0] == "evaluate-threat-universe":
+        return evaluate_threat_universe_command(argv[1:])
     if argv and argv[0] in {"visualize-evaluations", "visualize"}:
         return visualize_evaluations_command(argv[1:])
     if argv and argv[0] == "analyze":

@@ -1570,6 +1570,12 @@
         "required": 6,
         "missing": 4
       },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
+      },
       "errors": []
     },
     {
@@ -1601,6 +1607,12 @@
         "status": "unavailable",
         "required": 4,
         "missing": 4
+      },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
       },
       "errors": []
     },
@@ -2373,6 +2385,12 @@
         "required": 4,
         "missing": 3
       },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
+      },
       "errors": []
     },
     {
@@ -3144,6 +3162,12 @@
         "status": "partial",
         "required": 7,
         "missing": 6
+      },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
       },
       "errors": []
     },
@@ -4707,6 +4731,12 @@
         "required": 16,
         "missing": 12
       },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
+      },
       "errors": []
     },
     {
@@ -4738,6 +4768,12 @@
         "status": "partial",
         "required": 5,
         "missing": 4
+      },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
       },
       "errors": []
     },
@@ -4771,6 +4807,12 @@
         "required": 6,
         "missing": 5
       },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
+      },
       "errors": []
     },
     {
@@ -4802,6 +4844,12 @@
         "status": "partial",
         "required": 5,
         "missing": 4
+      },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
       },
       "errors": []
     },
@@ -4835,6 +4883,12 @@
         "required": 7,
         "missing": 6
       },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
+      },
       "errors": []
     },
     {
@@ -4866,6 +4920,12 @@
         "status": "partial",
         "required": 4,
         "missing": 3
+      },
+      "expected_outcome": {
+        "status": "not_declared",
+        "declared": null,
+        "actual": null,
+        "mismatches": []
       },
       "errors": []
     }

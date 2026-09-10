@@ -24,6 +24,16 @@ def test_asset_logsource_is_preserved() -> None:
     assert system.assets[0].logsource == {"category": "process_creation"}
 
 
+def test_scenario_expected_outcome_is_loaded_into_system_model() -> None:
+    system = load_system(
+        "evaluations/scenarios/scenario-11-threat-model-blocked-no-flow.yaml"
+    )
+
+    assert system.expected_outcome is not None
+    assert system.expected_outcome.attack_applicability == "blocked"
+    assert system.expected_outcome.blocked_reason == "communication_path"
+
+
 def test_invalid_asset_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "invalid.yaml"
     path.write_text("system:\n  assets:\n    - type: server\n", encoding="utf-8")

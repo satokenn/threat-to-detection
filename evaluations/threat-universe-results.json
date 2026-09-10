@@ -1,0 +1,4916 @@
+{
+  "schema_version": "1.0",
+  "evaluation_id": "threat-universe-applicability-001",
+  "mode": "fixture_offline_safe_synthetic",
+  "inputs": {
+    "threat_universe": "evaluations/threat-universe.yaml",
+    "target_system": "evaluations/threat-universe-system.yaml"
+  },
+  "sampling": {
+    "method": "stratified_random_without_replacement",
+    "seed": 41,
+    "strata_field": "domain",
+    "sample_per_stratum": 2,
+    "population_count": 18,
+    "sampled_candidate_count": 12,
+    "selected_threat_ids": [
+      "universe-t1021-rdp-database",
+      "universe-t1021-ssh-database-blocked",
+      "universe-t1046-database-blocked-boundary",
+      "universe-t1059-outbound-unknown",
+      "universe-t1059-persistence-unknown",
+      "universe-t1071-http-applicable",
+      "universe-t1105-ingress-applicable",
+      "universe-t1105-outbound-blocked",
+      "universe-t1135-database-applicable",
+      "universe-t1190-public-applicable",
+      "universe-t1552-local-unknown",
+      "universe-t1566-attachment-unknown"
+    ]
+  },
+  "summary": {
+    "population_count": 18,
+    "sampled_candidate_count": 12,
+    "before_candidate_count": 12,
+    "applicable_count": 5,
+    "blocked_count": 3,
+    "unknown_count": 4,
+    "candidate_reduction_rate": 0.25,
+    "blocked_reasons": {
+      "communication_path": 2,
+      "trust_boundary": 1
+    },
+    "unknown_reasons": {
+      "preconditions": 3,
+      "trust_boundary": 1
+    }
+  },
+  "expected_outcome": {
+    "status": "passed",
+    "declared": {
+      "sampled_candidate_count": 12,
+      "status_counts": {
+        "applicable": 5,
+        "blocked": 3,
+        "unknown": 4
+      },
+      "selected_threat_ids": [
+        "universe-t1021-rdp-database",
+        "universe-t1021-ssh-database-blocked",
+        "universe-t1046-database-blocked-boundary",
+        "universe-t1059-outbound-unknown",
+        "universe-t1059-persistence-unknown",
+        "universe-t1071-http-applicable",
+        "universe-t1105-ingress-applicable",
+        "universe-t1105-outbound-blocked",
+        "universe-t1135-database-applicable",
+        "universe-t1190-public-applicable",
+        "universe-t1552-local-unknown",
+        "universe-t1566-attachment-unknown"
+      ]
+    },
+    "actual": {
+      "sampled_candidate_count": 12,
+      "status_counts": {
+        "applicable": 5,
+        "blocked": 3,
+        "unknown": 4
+      },
+      "selected_threat_ids": [
+        "universe-t1021-rdp-database",
+        "universe-t1021-ssh-database-blocked",
+        "universe-t1046-database-blocked-boundary",
+        "universe-t1059-outbound-unknown",
+        "universe-t1059-persistence-unknown",
+        "universe-t1071-http-applicable",
+        "universe-t1105-ingress-applicable",
+        "universe-t1105-outbound-blocked",
+        "universe-t1135-database-applicable",
+        "universe-t1190-public-applicable",
+        "universe-t1552-local-unknown",
+        "universe-t1566-attachment-unknown"
+      ]
+    },
+    "mismatches": []
+  },
+  "candidates": [
+    {
+      "threat_id": "universe-t1021-rdp-database",
+      "name": "RDPによる内部データベースへのリモートアクセス",
+      "domain": "lateral_movement",
+      "target_asset": "database",
+      "attack_technique_ids": [
+        "T1021.001"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1021.001",
+        "url": "https://attack.mitre.org/techniques/T1021/001/",
+        "rationale": "MITRE ATT&CKはRDPをリモートシステムへの接続手段として記述している。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "web-server",
+        "flow_destination": "database",
+        "protocol": "tcp",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "dmz-to-internal",
+        "authentication_required": true,
+        "authorization_required": true,
+        "privilege_required": true,
+        "required_privilege": "service",
+        "required_preconditions": [],
+        "rationale": "RDPの接続先をdatabase、送信元をweb-serverとする評価仮説。内部境界、 認証、認可、service権限を対象モデルで明示的に照合する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "applicable",
+        "reasons": [
+          "All required attack applicability conditions are satisfied."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "destination",
+            "value": "database"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "trust_boundary",
+            "value": "dmz-to-internal"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authentication",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authorization",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_level",
+            "value": "service"
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The trust boundary is explicitly declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate's authentication prerequisite is satisfied.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate's authorization prerequisite is satisfied.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "Target asset privilege meets the required privilege.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1021-rdp-database",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:database",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1021-rdp-database",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1021.001",
+            "field": "applicability_profile",
+            "rationale": "RDPの接続先をdatabase、送信元をweb-serverとする評価仮説。内部境界、 認証、認可、service権限を対象モデルで明示的に照合する。",
+            "url": "https://attack.mitre.org/techniques/T1021/001/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1021-rdp-database",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:web-server->database",
+            "from": "web-server",
+            "to": "database",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "destination",
+                    "value": "database"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "trust_boundary",
+                    "value": "dmz-to-internal"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate's authentication prerequisite is satisfied.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authentication",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate's authorization prerequisite is satisfied.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authorization",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "Target asset privilege meets the required privilege.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_level",
+                    "value": "service"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:database",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1021-rdp-database",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1021-rdp-database",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1021-ssh-database-blocked",
+      "name": "SSHによる内部データベースへのリモートアクセス",
+      "domain": "lateral_movement",
+      "target_asset": "database",
+      "attack_technique_ids": [
+        "T1021.004"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1021.004",
+        "url": "https://attack.mitre.org/techniques/T1021/004/",
+        "rationale": "MITRE ATT&CKのRemote ServicesサブテクニックとしてSSHを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "web-server",
+        "flow_destination": "database",
+        "protocol": "ssh",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "dmz-to-internal",
+        "authentication_required": true,
+        "authorization_required": true,
+        "privilege_required": true,
+        "required_privilege": "service",
+        "required_preconditions": [],
+        "rationale": "SSHの経路を候補化するが、対象モデルにsshプロトコルのflowがないため、 他のtcp経路から推測せず通信経路不成立として評価する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "blocked",
+        "reasons": [
+          "Blocked by: communication_path."
+        ],
+        "evidence": [],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "blocked",
+            "reason": "No explicit communication flow reaches the target asset.",
+            "evidence": [],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "asset:database",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1021.004",
+            "field": "applicability_profile",
+            "rationale": "SSHの経路を候補化するが、対象モデルにsshプロトコルのflowがないため、 他のtcp経路から推測せず通信経路不成立として評価する。",
+            "url": "https://attack.mitre.org/techniques/T1021/004/"
+          }
+        ],
+        "blocked_reason": "communication_path",
+        "blocked_reasons": [
+          "communication_path"
+        ],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1021-ssh-database-blocked",
+        "flow_evaluations": []
+      }
+    },
+    {
+      "threat_id": "universe-t1046-database-blocked-boundary",
+      "name": "外部境界から内部データベースのサービス探索",
+      "domain": "discovery",
+      "target_asset": "database",
+      "attack_technique_ids": [
+        "T1046"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1046",
+        "url": "https://attack.mitre.org/techniques/T1046/",
+        "rationale": "MITRE ATT&CKのNetwork Service Scanningを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "web-server",
+        "flow_destination": "database",
+        "protocol": "tcp",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "internet-to-dmz",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "外部境界を要求する仮説を内部flowへ誤適用し、trust boundaryの不一致を blockedとして検出できることを確認する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "blocked",
+        "reasons": [
+          "Blocked by: trust_boundary."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "destination",
+            "value": "database"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "trust_boundary",
+            "value": "dmz-to-internal"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authentication",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authorization",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_level",
+            "value": "service"
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "blocked",
+            "reason": "The declared trust boundary does not satisfy the required boundary.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1046-database-blocked-boundary",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:database",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1046-database-blocked-boundary",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1046",
+            "field": "applicability_profile",
+            "rationale": "外部境界を要求する仮説を内部flowへ誤適用し、trust boundaryの不一致を blockedとして検出できることを確認する。",
+            "url": "https://attack.mitre.org/techniques/T1046/"
+          }
+        ],
+        "blocked_reason": "trust_boundary",
+        "blocked_reasons": [
+          "trust_boundary"
+        ],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1046-database-blocked-boundary",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:web-server->database",
+            "from": "web-server",
+            "to": "database",
+            "status": "blocked",
+            "reasons": [
+              "Blocked by: trust_boundary."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "destination",
+                    "value": "database"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "blocked",
+                "reason": "The declared trust boundary does not satisfy the required boundary.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "trust_boundary",
+                    "value": "dmz-to-internal"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authentication",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authorization",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_level",
+                    "value": "service"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:database",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1046-database-blocked-boundary",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1046-database-blocked-boundary",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [
+              "trust_boundary"
+            ],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1059-outbound-unknown",
+      "name": "外向き通信後のコマンド実行",
+      "domain": "execution",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1059"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1059",
+        "url": "https://attack.mitre.org/techniques/T1059/",
+        "rationale": "MITRE ATT&CKのCommand and Scripting Interpreterを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "outbound",
+        "flow_source": "web-server",
+        "flow_destination": "internet",
+        "protocol": "https",
+        "trust_boundary_required": false,
+        "required_trust_boundary": null,
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [
+          "existing_foothold"
+        ],
+        "rationale": "外向き経路は存在するが、コマンド実行に必要な既存足場が未宣言なのでunknownとする。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "unknown",
+        "reasons": [
+          "Unknown because: preconditions."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "source",
+            "value": "web-server"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "trust_boundary",
+            "value": "dmz-to-internet"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "authentication",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "authorization",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_level",
+            "value": "user"
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "preconditions",
+            "status": "unknown",
+            "reason": "Required preconditions are not declared: existing_foothold.",
+            "evidence": [],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "preconditions",
+                "rationale": "The target system does not declare all candidate preconditions."
+              }
+            ]
+          },
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "source",
+                "value": "web-server"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The candidate does not require a declared trust boundary.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "trust_boundary",
+                "value": "dmz-to-internet"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1059-outbound-unknown",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1059-outbound-unknown",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1059",
+            "field": "applicability_profile",
+            "rationale": "外向き経路は存在するが、コマンド実行に必要な既存足場が未宣言なのでunknownとする。",
+            "url": "https://attack.mitre.org/techniques/T1059/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": "preconditions",
+        "unknown_reasons": [
+          "preconditions"
+        ],
+        "trace_id": "universe-t1059-outbound-unknown",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:web-server->internet",
+            "from": "web-server",
+            "to": "internet",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "source",
+                "value": "web-server"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "trust_boundary",
+                "value": "dmz-to-internet"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "source",
+                    "value": "web-server"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The candidate does not require a declared trust boundary.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "trust_boundary",
+                    "value": "dmz-to-internet"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:web-server",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1059-outbound-unknown",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1059-outbound-unknown",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1059-persistence-unknown",
+      "name": "永続化後のスクリプト実行",
+      "domain": "persistence",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1059"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1059",
+        "url": "https://attack.mitre.org/techniques/T1059/",
+        "rationale": "MITRE ATT&CKのCommand and Scripting Interpreterを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "local",
+        "flow_direction": "inbound",
+        "flow_source": null,
+        "flow_destination": null,
+        "protocol": null,
+        "trust_boundary_required": null,
+        "required_trust_boundary": null,
+        "authentication_required": null,
+        "authorization_required": null,
+        "privilege_required": null,
+        "required_privilege": null,
+        "required_preconditions": [
+          "existing_foothold"
+        ],
+        "rationale": "ローカル実行の前提条件を対象システムが確定していないためunknownとする。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "unknown",
+        "reasons": [
+          "Unknown because: preconditions."
+        ],
+        "evidence": [],
+        "evaluated_conditions": [
+          {
+            "condition": "preconditions",
+            "status": "unknown",
+            "reason": "Required preconditions are not declared: existing_foothold.",
+            "evidence": [],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "preconditions",
+                "rationale": "The target system does not declare all candidate preconditions."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "preconditions",
+            "rationale": "The target system does not declare all candidate preconditions."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1059",
+            "field": "applicability_profile",
+            "rationale": "ローカル実行の前提条件を対象システムが確定していないためunknownとする。",
+            "url": "https://attack.mitre.org/techniques/T1059/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": "preconditions",
+        "unknown_reasons": [
+          "preconditions"
+        ],
+        "trace_id": "universe-t1059-persistence-unknown",
+        "flow_evaluations": []
+      }
+    },
+    {
+      "threat_id": "universe-t1071-http-applicable",
+      "name": "Webプロトコルを用いた外向き通信",
+      "domain": "command_and_control",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1071.001"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1071.001",
+        "url": "https://attack.mitre.org/techniques/T1071/001/",
+        "rationale": "MITRE ATT&CKのWeb Protocolsサブテクニックを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "outbound",
+        "flow_source": "web-server",
+        "flow_destination": "internet",
+        "protocol": "https",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "dmz-to-internet",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "web-serverからinternetへのhttps外向き経路をC2仮説と照合する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "applicable",
+        "reasons": [
+          "All required attack applicability conditions are satisfied."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "source",
+            "value": "web-server"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "trust_boundary",
+            "value": "dmz-to-internet"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "authentication",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->internet",
+            "field": "authorization",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_level",
+            "value": "user"
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "source",
+                "value": "web-server"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The trust boundary is explicitly declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "trust_boundary",
+                "value": "dmz-to-internet"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1071-http-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->internet",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1071-http-applicable",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1071.001",
+            "field": "applicability_profile",
+            "rationale": "web-serverからinternetへのhttps外向き経路をC2仮説と照合する。",
+            "url": "https://attack.mitre.org/techniques/T1071/001/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1071-http-applicable",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:web-server->internet",
+            "from": "web-server",
+            "to": "internet",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "source",
+                "value": "web-server"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "trust_boundary",
+                "value": "dmz-to-internet"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->internet",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "source",
+                    "value": "web-server"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "trust_boundary",
+                    "value": "dmz-to-internet"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->internet",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->internet",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:web-server",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1071-http-applicable",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->internet",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1071-http-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1105-ingress-applicable",
+      "name": "外部からのツール転送",
+      "domain": "execution",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1105"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1105",
+        "url": "https://attack.mitre.org/techniques/T1105/",
+        "rationale": "MITRE ATT&CKのIngress Tool Transferを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "internet",
+        "flow_destination": "web-server",
+        "protocol": "https",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "internet-to-dmz",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "外部からweb-serverへhttpsで到達する抽象的な転送仮説を、対象モデルの明示flowに 照合する。内容や実行は扱わない。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "applicable",
+        "reasons": [
+          "All required attack applicability conditions are satisfied."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "destination",
+            "value": "web-server"
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "trust_boundary",
+            "value": "internet-to-dmz"
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "authentication",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "authorization",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_level",
+            "value": "user"
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "destination",
+                "value": "web-server"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The trust boundary is explicitly declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "trust_boundary",
+                "value": "internet-to-dmz"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1105-ingress-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1105-ingress-applicable",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1105",
+            "field": "applicability_profile",
+            "rationale": "外部からweb-serverへhttpsで到達する抽象的な転送仮説を、対象モデルの明示flowに 照合する。内容や実行は扱わない。",
+            "url": "https://attack.mitre.org/techniques/T1105/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1105-ingress-applicable",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:internet->web-server",
+            "from": "internet",
+            "to": "web-server",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "destination",
+                "value": "web-server"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "trust_boundary",
+                "value": "internet-to-dmz"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "destination",
+                    "value": "web-server"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "trust_boundary",
+                    "value": "internet-to-dmz"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:web-server",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1105-ingress-applicable",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1105-ingress-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1105-outbound-blocked",
+      "name": "外向き経路を用いたツール転送",
+      "domain": "command_and_control",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1105"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1105",
+        "url": "https://attack.mitre.org/techniques/T1105/",
+        "rationale": "MITRE ATT&CKのIngress Tool Transferを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "outbound",
+        "flow_source": "web-server",
+        "flow_destination": "internet",
+        "protocol": "dns",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "dmz-to-internet",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "DNSを転送経路とする仮説をあえて候補化するが、対象モデルにDNS flowはなく、 httpsをDNSとみなさず通信経路不成立とする。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "blocked",
+        "reasons": [
+          "Blocked by: communication_path."
+        ],
+        "evidence": [],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "blocked",
+            "reason": "No explicit communication flow reaches the target asset.",
+            "evidence": [],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1105",
+            "field": "applicability_profile",
+            "rationale": "DNSを転送経路とする仮説をあえて候補化するが、対象モデルにDNS flowはなく、 httpsをDNSとみなさず通信経路不成立とする。",
+            "url": "https://attack.mitre.org/techniques/T1105/"
+          }
+        ],
+        "blocked_reason": "communication_path",
+        "blocked_reasons": [
+          "communication_path"
+        ],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1105-outbound-blocked",
+        "flow_evaluations": []
+      }
+    },
+    {
+      "threat_id": "universe-t1135-database-applicable",
+      "name": "内部ネットワーク共有の探索",
+      "domain": "discovery",
+      "target_asset": "database",
+      "attack_technique_ids": [
+        "T1135"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1135",
+        "url": "https://attack.mitre.org/techniques/T1135/",
+        "rationale": "MITRE ATT&CKのNetwork Share Discoveryを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "web-server",
+        "flow_destination": "database",
+        "protocol": "tcp",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "dmz-to-internal",
+        "authentication_required": true,
+        "authorization_required": true,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "web-serverからdatabaseへの内部経路で共有探索を行う仮説。境界・認証・認可の 条件を実際のflow記述と照合する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "applicable",
+        "reasons": [
+          "All required attack applicability conditions are satisfied."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "destination",
+            "value": "database"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "trust_boundary",
+            "value": "dmz-to-internal"
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authentication",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "web-server->database",
+            "field": "authorization",
+            "value": {
+              "required": true,
+              "satisfied": true,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_level",
+            "value": "service"
+          },
+          {
+            "kind": "asset",
+            "id": "database",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The trust boundary is explicitly declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate's authentication prerequisite is satisfied.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate's authorization prerequisite is satisfied.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1135-database-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:web-server->database",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:database",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1135-database-applicable",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1135",
+            "field": "applicability_profile",
+            "rationale": "web-serverからdatabaseへの内部経路で共有探索を行う仮説。境界・認証・認可の 条件を実際のflow記述と照合する。",
+            "url": "https://attack.mitre.org/techniques/T1135/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1135-database-applicable",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:web-server->database",
+            "from": "web-server",
+            "to": "database",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "destination",
+                "value": "database"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "trust_boundary",
+                "value": "dmz-to-internal"
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authentication",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "web-server->database",
+                "field": "authorization",
+                "value": {
+                  "required": true,
+                  "satisfied": true,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_level",
+                "value": "service"
+              },
+              {
+                "kind": "asset",
+                "id": "database",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "destination",
+                    "value": "database"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "trust_boundary",
+                    "value": "dmz-to-internal"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate's authentication prerequisite is satisfied.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authentication",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate's authorization prerequisite is satisfied.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "web-server->database",
+                    "field": "authorization",
+                    "value": {
+                      "required": true,
+                      "satisfied": true,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:web-server->database",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_level",
+                    "value": "service"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:database",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "database",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1135-database-applicable",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:web-server->database",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:database",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1135-database-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1190-public-applicable",
+      "name": "公開アプリケーションの脆弱性悪用",
+      "domain": "initial_access",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1190"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1190",
+        "url": "https://attack.mitre.org/techniques/T1190/",
+        "rationale": "MITRE ATT&CKのExploit Public-Facing Applicationを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "internet",
+        "flow_destination": "web-server",
+        "protocol": "https",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "internet-to-dmz",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "公開web-serverへの到達を初期アクセス仮説とし、公開側境界・認証不要の条件を 対象flowに明示した値と照合する。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "applicable",
+        "reasons": [
+          "All required attack applicability conditions are satisfied."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "destination",
+            "value": "web-server"
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "trust_boundary",
+            "value": "internet-to-dmz"
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "authentication",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          },
+          {
+            "kind": "flow",
+            "id": "internet->web-server",
+            "field": "authorization",
+            "value": {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_level",
+            "value": "user"
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "destination",
+                "value": "web-server"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "satisfied",
+            "reason": "The trust boundary is explicitly declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "trust_boundary",
+                "value": "internet-to-dmz"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1190-public-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:internet->web-server",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1190-public-applicable",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1190",
+            "field": "applicability_profile",
+            "rationale": "公開web-serverへの到達を初期アクセス仮説とし、公開側境界・認証不要の条件を 対象flowに明示した値と照合する。",
+            "url": "https://attack.mitre.org/techniques/T1190/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": null,
+        "unknown_reasons": [],
+        "trace_id": "universe-t1190-public-applicable",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:internet->web-server",
+            "from": "internet",
+            "to": "web-server",
+            "status": "applicable",
+            "reasons": [
+              "All required attack applicability conditions are satisfied."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "destination",
+                "value": "web-server"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "trust_boundary",
+                "value": "internet-to-dmz"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "internet->web-server",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "destination",
+                    "value": "web-server"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "trust_boundary",
+                    "value": "internet-to-dmz"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->web-server",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->web-server",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:web-server",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1190-public-applicable",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1190-public-applicable",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": []
+          }
+        ]
+      }
+    },
+    {
+      "threat_id": "universe-t1552-local-unknown",
+      "name": "保存された認証情報の探索",
+      "domain": "persistence",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1552.001"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1552.001",
+        "url": "https://attack.mitre.org/techniques/T1552/001/",
+        "rationale": "MITRE ATT&CKのCredentials In Filesサブテクニックを参照する。"
+      },
+      "applicability_profile": {
+        "flow_scope": "local",
+        "flow_direction": "inbound",
+        "flow_source": null,
+        "flow_destination": null,
+        "protocol": null,
+        "trust_boundary_required": null,
+        "required_trust_boundary": null,
+        "authentication_required": null,
+        "authorization_required": null,
+        "privilege_required": null,
+        "required_privilege": null,
+        "required_preconditions": [
+          "existing_foothold"
+        ],
+        "rationale": "ローカルファイルへのアクセス前提が未宣言なのでunknownとする。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "unknown",
+        "reasons": [
+          "Unknown because: preconditions."
+        ],
+        "evidence": [],
+        "evaluated_conditions": [
+          {
+            "condition": "preconditions",
+            "status": "unknown",
+            "reason": "Required preconditions are not declared: existing_foothold.",
+            "evidence": [],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "preconditions",
+                "rationale": "The target system does not declare all candidate preconditions."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "preconditions",
+            "rationale": "The target system does not declare all candidate preconditions."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1552.001",
+            "field": "applicability_profile",
+            "rationale": "ローカルファイルへのアクセス前提が未宣言なのでunknownとする。",
+            "url": "https://attack.mitre.org/techniques/T1552/001/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": "preconditions",
+        "unknown_reasons": [
+          "preconditions"
+        ],
+        "trace_id": "universe-t1552-local-unknown",
+        "flow_evaluations": []
+      }
+    },
+    {
+      "threat_id": "universe-t1566-attachment-unknown",
+      "name": "メール添付ファイルによる初期アクセス",
+      "domain": "initial_access",
+      "target_asset": "web-server",
+      "attack_technique_ids": [
+        "T1566.001"
+      ],
+      "source": {
+        "source_type": "public_threat_intel",
+        "source_id": "ATT&CK:T1566.001",
+        "url": "https://attack.mitre.org/techniques/T1566/001/",
+        "rationale": "MITRE ATT&CKは悪性添付ファイルを用いた初期アクセスを記述している。"
+      },
+      "applicability_profile": {
+        "flow_scope": "network",
+        "flow_direction": "inbound",
+        "flow_source": "email",
+        "flow_destination": "web-server",
+        "protocol": "smtp",
+        "trust_boundary_required": true,
+        "required_trust_boundary": "email-to-dmz",
+        "authentication_required": false,
+        "authorization_required": false,
+        "privilege_required": false,
+        "required_privilege": null,
+        "required_preconditions": [],
+        "rationale": "emailからweb-serverへのsmtp flowは存在するが、信頼境界が未記載であるため、 email-to-dmzを推測せずunknownとする。"
+      },
+      "before_candidate": true,
+      "attack_applicability": {
+        "status": "unknown",
+        "reasons": [
+          "Unknown because: trust_boundary."
+        ],
+        "evidence": [
+          {
+            "kind": "flow",
+            "id": "email->web-server",
+            "field": "destination",
+            "value": "web-server"
+          },
+          {
+            "kind": "flow",
+            "id": "email->web-server",
+            "field": "trust_boundary",
+            "value": null
+          },
+          {
+            "kind": "flow",
+            "id": "email->web-server",
+            "field": "authentication",
+            "value": null
+          },
+          {
+            "kind": "flow",
+            "id": "email->web-server",
+            "field": "authorization",
+            "value": null
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_level",
+            "value": "user"
+          },
+          {
+            "kind": "asset",
+            "id": "web-server",
+            "field": "privilege_transition",
+            "value": null
+          }
+        ],
+        "evaluated_conditions": [
+          {
+            "condition": "reachability",
+            "status": "satisfied",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "destination",
+                "value": "web-server"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "trust_boundary",
+            "status": "unknown",
+            "reason": "Trust boundary is not declared.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "trust_boundary",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authentication",
+            "status": "satisfied",
+            "reason": "The candidate does not require authentication.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "authentication",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "authorization",
+            "status": "satisfied",
+            "reason": "The candidate does not require authorization.",
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "authorization",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          },
+          {
+            "condition": "privilege",
+            "status": "satisfied",
+            "reason": "The candidate does not require a privilege level.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              }
+            ]
+          },
+          {
+            "condition": "privilege_transition",
+            "status": "satisfied",
+            "reason": "No privilege transition is required by the scenario.",
+            "evidence": [
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1566-attachment-unknown",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ]
+          }
+        ],
+        "provenance": [
+          {
+            "source_type": "system_model",
+            "source_id": "flow:email->web-server",
+            "field": "flows",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:email->web-server",
+            "field": "trust_boundary",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:email->web-server",
+            "field": "authentication",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "flow:email->web-server",
+            "field": "authorization",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "system_model",
+            "source_id": "asset:web-server",
+            "field": "privilege_level",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "required_privilege",
+            "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "scenario_author",
+            "source_id": "scenario:fixture-web-system-for-threat-universe",
+            "field": "privilege_transition",
+            "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+          },
+          {
+            "source_type": "derived",
+            "source_id": "trace:universe-t1566-attachment-unknown",
+            "field": "privilege_transition",
+            "rationale": "The value is explicitly declared in the SystemModel."
+          },
+          {
+            "source_type": "public_threat_intel",
+            "source_id": "ATT&CK:T1566.001",
+            "field": "applicability_profile",
+            "rationale": "emailからweb-serverへのsmtp flowは存在するが、信頼境界が未記載であるため、 email-to-dmzを推測せずunknownとする。",
+            "url": "https://attack.mitre.org/techniques/T1566/001/"
+          }
+        ],
+        "blocked_reason": null,
+        "blocked_reasons": [],
+        "unknown_reason": "trust_boundary",
+        "unknown_reasons": [
+          "trust_boundary"
+        ],
+        "trace_id": "universe-t1566-attachment-unknown",
+        "flow_evaluations": [
+          {
+            "flow_id": "flow-1:email->web-server",
+            "from": "email",
+            "to": "web-server",
+            "status": "unknown",
+            "reasons": [
+              "Unknown because: trust_boundary."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "destination",
+                "value": "web-server"
+              },
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "trust_boundary",
+                "value": null
+              },
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "authentication",
+                "value": null
+              },
+              {
+                "kind": "flow",
+                "id": "email->web-server",
+                "field": "authorization",
+                "value": null
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "web-server",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "email->web-server",
+                    "field": "destination",
+                    "value": "web-server"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:email->web-server",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "unknown",
+                "reason": "Trust boundary is not declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "email->web-server",
+                    "field": "trust_boundary",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:email->web-server",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "The candidate does not require authentication.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "email->web-server",
+                    "field": "authentication",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:email->web-server",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "The candidate does not require authorization.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "email->web-server",
+                    "field": "authorization",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:email->web-server",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "The candidate does not require a privilege level.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:web-server",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "web-server",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:fixture-web-system-for-threat-universe",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:universe-t1566-attachment-unknown",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:email->web-server",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:web-server",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:fixture-web-system-for-threat-universe",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:universe-t1566-attachment-unknown",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reasons": [],
+            "unknown_reasons": [
+              "trust_boundary"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

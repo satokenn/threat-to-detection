@@ -1,0 +1,48 @@
+system:
+  metadata:
+    name: fixture-web-system-for-threat-universe
+    description: 公開脅威候補を照合するための安全なWebシステムモデル
+  preconditions:
+    - external_network_access
+    - valid_account
+    - user_execution
+  assets:
+    - name: web-server
+      type: server
+      privilege_level: user
+      exposed_to: [internet]
+      logs: [process_creation, network_connection]
+    - name: database
+      type: database
+      privilege_level: service
+      logs: [process_creation, network_connection, database_audit]
+  flows:
+    - from: internet
+      to: web-server
+      protocol: https
+      trust_boundary: internet-to-dmz
+      authentication:
+        required: false
+      authorization:
+        required: false
+    - from: email
+      to: web-server
+      protocol: smtp
+    - from: web-server
+      to: database
+      protocol: tcp
+      trust_boundary: dmz-to-internal
+      authentication:
+        required: true
+        satisfied: true
+      authorization:
+        required: true
+        satisfied: true
+    - from: web-server
+      to: internet
+      protocol: https
+      trust_boundary: dmz-to-internet
+      authentication:
+        required: false
+      authorization:
+        required: false

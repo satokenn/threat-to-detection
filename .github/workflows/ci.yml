@@ -47,6 +47,19 @@ jobs:
           --attack-fixture tests/fixtures/attack/enterprise-attack.json
           --nvd-fixture tests/fixtures/nvd/cves.json
           --output /tmp/multidomain-results.json --report /tmp/multidomain-report.md
+      - name: Evaluate applicability condition fixtures without network
+        run: >-
+          python -m threat_to_detection.cli evaluate-scenarios
+          --index evaluations/scenarios/condition-fixtures.yaml
+          --capec-fixture tests/fixtures/capec/attack_patterns.xml
+          --attack-fixture tests/fixtures/attack/enterprise-attack.json
+          --nvd-fixture tests/fixtures/nvd/cves.json
+          --output /tmp/condition-fixture-results.json --report /tmp/condition-fixture-report.md
+      - name: Evaluate sampled threat universe without network
+        run: >-
+          python -m threat_to_detection.cli evaluate-threat-universe
+          --universe evaluations/threat-universe.yaml
+          --output /tmp/threat-universe-results.json --report /tmp/threat-universe-report.md
       - name: Generate evaluation visualizations without network
         run: >-
           python -m threat_to_detection.cli visualize-evaluations

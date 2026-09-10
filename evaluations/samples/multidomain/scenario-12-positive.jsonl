@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-12T00:00:01Z","event_id":"process_creation","source":"safe-synthetic-endpoint","message":"abstract process event for boundary case","process.command_line":"synthetic-check --no-op"}

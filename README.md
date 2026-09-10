@@ -70,6 +70,12 @@ uv run threat-to-detection evaluate-scenarios \
   --attack-fixture tests/fixtures/attack/enterprise-attack.json \
   --nvd-fixture tests/fixtures/nvd/cves.json
 
+# 公開ATT&CK技術の脅威候補母集団を固定seedで抽出して対象システムに照合
+uv run threat-to-detection evaluate-threat-universe \
+  --universe evaluations/threat-universe.yaml \
+  --output evaluations/threat-universe-results.json \
+  --report evaluations/threat-universe-report.md
+
 # Issue #26 / #27の評価結果から、再現可能なSVG図と集計CSV/JSONを生成
 uv run threat-to-detection visualize-evaluations \
   --evaluation-a evaluations/cve-evaluation.json \
@@ -83,6 +89,11 @@ uv run threat-to-detection visualize-evaluations \
 `aggregates/evaluation_a_summary.csv`、`aggregates/evaluation_b_summary.csv`、
 `aggregates/evaluation-summary.json`にも保存されます。数値は入力レコードから算出され、
 `unknown`は候補削減率に含めません。
+
+多分野シナリオとは別に、`threat-universe.yaml`は複数ドメインの公開ATT&CK Techniqueを
+候補母集団として保持します。固定seedの層別ランダム抽出後、候補ごとの明示的な
+適用プロファイルを対象システムへ照合します。候補IDの存在だけでは条件を満たしたとせず、
+根拠が不十分な条件は`unknown`として残します。
 
 Issue #23の評価対象CVE 42件を再現可能に取得・選定する手順は
 [`docs/cve-selection.md`](docs/cve-selection.md)にまとめています。既定の固定seedは`23`です。

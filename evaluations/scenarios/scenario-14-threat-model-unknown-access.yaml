@@ -1,0 +1,42 @@
+schema_version: "1.0"
+scenario_id: scenario-14-threat-model-unknown-access
+title: "脅威モデル評価: 認証・認可・境界の未指定をunknownにする"
+scenario_type: evaluation_fixture
+status: condition_fixture
+asset:
+  name: scenario-14-threat-model-unknown-access
+  type: endpoint
+  privilege_level: user
+flows:
+  - from: internet
+    to: scenario-14-threat-model-unknown-access
+    protocol: https
+entrypoint:
+  type: technique
+  source: safe_synthetic_threat_model_fixture
+  identifiers:
+    behavior: abstract_process_execution
+    attack_techniques: [T1059]
+analysis_chain:
+  weakness: 実際のマルウェアではなく、条件未指定時の不確実性を評価する。
+  exploitation: 実行手順やペイロードは含めず、ATT&CK Techniqueだけを候補にする。
+  attacker_action: T1059を候補として評価する。
+  monitoring: Process Creationの抽象イベントを参照する。
+  required_privilege: user
+  required_logs:
+    - event_type: process_creation
+      fields: [event_id, process.command_line]
+available_logs: [process_creation]
+expected_outcome:
+  attack_applicability: unknown
+  unknown_reasons: [trust_boundary, authentication, authorization]
+positive_samples: ../samples/multidomain/scenario-14-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-14-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: [T1059, DET0001]
+  safety: 条件未指定の扱いだけを検証し、実環境データは使用しない。

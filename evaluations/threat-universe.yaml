@@ -1,0 +1,426 @@
+schema_version: "1.0"
+title: 公開ATT&CK技術から抽出する脅威候補母集団
+purpose: >-
+  既存シナリオから候補を増殖させるのではなく、複数ドメインの公開ATT&CK
+  Techniqueを脅威仮説の母集団として保持し、対象システムの明示条件で選別する。
+  各候補の成立条件は対象環境への評価プロファイルとして明示し、公開ページが
+  特定環境の通信経路や権限を保証すると解釈しない。
+target_system: threat-universe-system.yaml
+sampling:
+  method: stratified_random_without_replacement
+  seed: 41
+  sample_per_stratum: 2
+  strata_field: domain
+threats:
+  - threat_id: universe-t1021-rdp-database
+    name: RDPによる内部データベースへのリモートアクセス
+    domain: lateral_movement
+    attack_technique_ids: [T1021.001]
+    target_asset: database
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1021.001
+      url: https://attack.mitre.org/techniques/T1021/001/
+      rationale: MITRE ATT&CKはRDPをリモートシステムへの接続手段として記述している。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: web-server
+      flow_destination: database
+      protocol: tcp
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internal
+      authentication_required: true
+      authorization_required: true
+      privilege_required: true
+      required_privilege: service
+      rationale: >-
+        RDPの接続先をdatabase、送信元をweb-serverとする評価仮説。内部境界、
+        認証、認可、service権限を対象モデルで明示的に照合する。
+  - threat_id: universe-t1021-ssh-database-blocked
+    name: SSHによる内部データベースへのリモートアクセス
+    domain: lateral_movement
+    attack_technique_ids: [T1021.004]
+    target_asset: database
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1021.004
+      url: https://attack.mitre.org/techniques/T1021/004/
+      rationale: MITRE ATT&CKのRemote ServicesサブテクニックとしてSSHを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: web-server
+      flow_destination: database
+      protocol: ssh
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internal
+      authentication_required: true
+      authorization_required: true
+      privilege_required: true
+      required_privilege: service
+      rationale: >-
+        SSHの経路を候補化するが、対象モデルにsshプロトコルのflowがないため、
+        他のtcp経路から推測せず通信経路不成立として評価する。
+  - threat_id: universe-t1133-admin-blocked
+    name: 外部リモートサービスからの管理者アクセス
+    domain: lateral_movement
+    attack_technique_ids: [T1133]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1133
+      url: https://attack.mitre.org/techniques/T1133/
+      rationale: MITRE ATT&CKは外部公開されたリモートサービスの利用を記述している。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: internet
+      flow_destination: web-server
+      protocol: https
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: true
+      authorization_required: true
+      privilege_required: true
+      required_privilege: admin
+      rationale: >-
+        外部リモートサービスが管理者権限を要求するという評価仮説。対象flowが
+        認証不要・user権限なので、成立条件の不一致を明示的に検出する。
+
+  - threat_id: universe-t1046-web-applicable
+    name: 外部からのネットワークサービス探索
+    domain: discovery
+    attack_technique_ids: [T1046]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1046
+      url: https://attack.mitre.org/techniques/T1046/
+      rationale: MITRE ATT&CKのNetwork Service Scanningを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: internet
+      flow_destination: web-server
+      protocol: https
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: 外部からweb-serverへ到達する探索仮説を明示条件と照合する。
+  - threat_id: universe-t1135-database-applicable
+    name: 内部ネットワーク共有の探索
+    domain: discovery
+    attack_technique_ids: [T1135]
+    target_asset: database
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1135
+      url: https://attack.mitre.org/techniques/T1135/
+      rationale: MITRE ATT&CKのNetwork Share Discoveryを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: web-server
+      flow_destination: database
+      protocol: tcp
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internal
+      authentication_required: true
+      authorization_required: true
+      privilege_required: false
+      rationale: >-
+        web-serverからdatabaseへの内部経路で共有探索を行う仮説。境界・認証・認可の
+        条件を実際のflow記述と照合する。
+  - threat_id: universe-t1046-database-blocked-boundary
+    name: 外部境界から内部データベースのサービス探索
+    domain: discovery
+    attack_technique_ids: [T1046]
+    target_asset: database
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1046
+      url: https://attack.mitre.org/techniques/T1046/
+      rationale: MITRE ATT&CKのNetwork Service Scanningを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: web-server
+      flow_destination: database
+      protocol: tcp
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: >-
+        外部境界を要求する仮説を内部flowへ誤適用し、trust boundaryの不一致を
+        blockedとして検出できることを確認する。
+
+  - threat_id: universe-t1071-http-applicable
+    name: Webプロトコルを用いた外向き通信
+    domain: command_and_control
+    attack_technique_ids: [T1071.001]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1071.001
+      url: https://attack.mitre.org/techniques/T1071/001/
+      rationale: MITRE ATT&CKのWeb Protocolsサブテクニックを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: outbound
+      flow_source: web-server
+      flow_destination: internet
+      protocol: https
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internet
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: web-serverからinternetへのhttps外向き経路をC2仮説と照合する。
+  - threat_id: universe-t1105-outbound-blocked
+    name: 外向き経路を用いたツール転送
+    domain: command_and_control
+    attack_technique_ids: [T1105]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1105
+      url: https://attack.mitre.org/techniques/T1105/
+      rationale: MITRE ATT&CKのIngress Tool Transferを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: outbound
+      flow_source: web-server
+      flow_destination: internet
+      protocol: dns
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internet
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: >-
+        DNSを転送経路とする仮説をあえて候補化するが、対象モデルにDNS flowはなく、
+        httpsをDNSとみなさず通信経路不成立とする。
+  - threat_id: universe-t1071-dns-blocked
+    name: DNSを用いた外向き通信
+    domain: command_and_control
+    attack_technique_ids: [T1071.004]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1071.004
+      url: https://attack.mitre.org/techniques/T1071/004/
+      rationale: MITRE ATT&CKのDNSサブテクニックを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: outbound
+      flow_source: web-server
+      flow_destination: internet
+      protocol: dns
+      trust_boundary_required: true
+      required_trust_boundary: dmz-to-internet
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: DNS通信仮説を候補化し、同じ外向きhttps flowからの類推を禁止する。
+
+  - threat_id: universe-t1190-public-applicable
+    name: 公開アプリケーションの脆弱性悪用
+    domain: initial_access
+    attack_technique_ids: [T1190]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1190
+      url: https://attack.mitre.org/techniques/T1190/
+      rationale: MITRE ATT&CKのExploit Public-Facing Applicationを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: internet
+      flow_destination: web-server
+      protocol: https
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: >-
+        公開web-serverへの到達を初期アクセス仮説とし、公開側境界・認証不要の条件を
+        対象flowに明示した値と照合する。
+  - threat_id: universe-t1133-vpn-blocked
+    name: VPNゲートウェイ経由の外部リモートサービス
+    domain: initial_access
+    attack_technique_ids: [T1133]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1133
+      url: https://attack.mitre.org/techniques/T1133/
+      rationale: MITRE ATT&CKはVPNなど外部リモートサービスを例示している。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: vpn-gateway
+      flow_destination: web-server
+      protocol: vpn
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: true
+      authorization_required: true
+      privilege_required: false
+      rationale: VPNゲートウェイを要求するが、対象システムに当該flowがないためblockedとする。
+  - threat_id: universe-t1566-attachment-unknown
+    name: メール添付ファイルによる初期アクセス
+    domain: initial_access
+    attack_technique_ids: [T1566.001]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1566.001
+      url: https://attack.mitre.org/techniques/T1566/001/
+      rationale: MITRE ATT&CKは悪性添付ファイルを用いた初期アクセスを記述している。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: email
+      flow_destination: web-server
+      protocol: smtp
+      trust_boundary_required: true
+      required_trust_boundary: email-to-dmz
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: >-
+        emailからweb-serverへのsmtp flowは存在するが、信頼境界が未記載であるため、
+        email-to-dmzを推測せずunknownとする。
+
+  - threat_id: universe-t1059-local-unknown
+    name: ローカルのコマンドとスクリプト実行
+    domain: execution
+    attack_technique_ids: [T1059]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1059
+      url: https://attack.mitre.org/techniques/T1059/
+      rationale: MITRE ATT&CKのCommand and Scripting Interpreterを参照する。
+    applicability:
+      flow_scope: local
+      required_preconditions: [existing_foothold]
+      rationale: >-
+        コマンド実行はネットワーク到達性だけで成立するとせず、対象に既存の足場が
+        あることを要求する。対象モデルがその事実を宣言していないためunknownとする。
+  - threat_id: universe-t1105-ingress-applicable
+    name: 外部からのツール転送
+    domain: execution
+    attack_technique_ids: [T1105]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1105
+      url: https://attack.mitre.org/techniques/T1105/
+      rationale: MITRE ATT&CKのIngress Tool Transferを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: inbound
+      flow_source: internet
+      flow_destination: web-server
+      protocol: https
+      trust_boundary_required: true
+      required_trust_boundary: internet-to-dmz
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      rationale: >-
+        外部からweb-serverへhttpsで到達する抽象的な転送仮説を、対象モデルの明示flowに
+        照合する。内容や実行は扱わない。
+  - threat_id: universe-t1059-outbound-unknown
+    name: 外向き通信後のコマンド実行
+    domain: execution
+    attack_technique_ids: [T1059]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1059
+      url: https://attack.mitre.org/techniques/T1059/
+      rationale: MITRE ATT&CKのCommand and Scripting Interpreterを参照する。
+    applicability:
+      flow_scope: network
+      flow_direction: outbound
+      flow_source: web-server
+      flow_destination: internet
+      protocol: https
+      trust_boundary_required: false
+      authentication_required: false
+      authorization_required: false
+      privilege_required: false
+      required_preconditions: [existing_foothold]
+      rationale: 外向き経路は存在するが、コマンド実行に必要な既存足場が未宣言なのでunknownとする。
+
+  - threat_id: universe-t1547-local-unknown
+    name: スタートアップ項目による永続化
+    domain: persistence
+    attack_technique_ids: [T1547.001]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1547.001
+      url: https://attack.mitre.org/techniques/T1547/001/
+      rationale: MITRE ATT&CKのRegistry Run Keys / Startup Folderを参照する。
+    applicability:
+      flow_scope: local
+      required_preconditions: [existing_foothold]
+      rationale: ローカル永続化には既存足場が必要だが、対象モデルはそれを宣言していない。
+  - threat_id: universe-t1552-local-unknown
+    name: 保存された認証情報の探索
+    domain: persistence
+    attack_technique_ids: [T1552.001]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1552.001
+      url: https://attack.mitre.org/techniques/T1552/001/
+      rationale: MITRE ATT&CKのCredentials In Filesサブテクニックを参照する。
+    applicability:
+      flow_scope: local
+      required_preconditions: [existing_foothold]
+      rationale: ローカルファイルへのアクセス前提が未宣言なのでunknownとする。
+  - threat_id: universe-t1059-persistence-unknown
+    name: 永続化後のスクリプト実行
+    domain: persistence
+    attack_technique_ids: [T1059]
+    target_asset: web-server
+    source:
+      source_type: public_threat_intel
+      source_id: ATT&CK:T1059
+      url: https://attack.mitre.org/techniques/T1059/
+      rationale: MITRE ATT&CKのCommand and Scripting Interpreterを参照する。
+    applicability:
+      flow_scope: local
+      required_preconditions: [existing_foothold]
+      rationale: ローカル実行の前提条件を対象システムが確定していないためunknownとする。
+
+expected_outcome:
+  sampled_candidate_count: 12
+  status_counts:
+    applicable: 5
+    blocked: 3
+    unknown: 4
+  selected_threat_ids:
+    - universe-t1021-rdp-database
+    - universe-t1021-ssh-database-blocked
+    - universe-t1046-database-blocked-boundary
+    - universe-t1059-outbound-unknown
+    - universe-t1059-persistence-unknown
+    - universe-t1071-http-applicable
+    - universe-t1105-ingress-applicable
+    - universe-t1105-outbound-blocked
+    - universe-t1135-database-applicable
+    - universe-t1190-public-applicable
+    - universe-t1552-local-unknown
+    - universe-t1566-attachment-unknown
