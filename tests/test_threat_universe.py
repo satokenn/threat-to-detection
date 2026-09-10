@@ -6,6 +6,9 @@ from pathlib import Path
 import yaml
 
 from threat_to_detection.cli import evaluate_threat_universe_command
+from threat_to_detection.models.system import Flow, load_system
+from threat_to_detection.models.threat import ThreatApplicabilityProfile
+from threat_to_detection.services.applicability import evaluate_attack_applicability
 from threat_to_detection.services.threat_universe import evaluate_threat_universe
 
 ROOT = Path(__file__).parents[1]
@@ -82,3 +85,91 @@ def test_threat_universe_cli_writes_machine_and_human_outputs(tmp_path: Path) ->
     result = json.loads(output.read_text(encoding="utf-8"))
     assert result["expected_outcome"]["status"] == "passed"
     assert "# 脅威候補母集団の適用可否評価" in report.read_text(encoding="utf-8")
+
+
+def test_committed_threat_universe_result_matches_regeneration(tmp_path: Path) -> None:
+    output = tmp_path / "result.json"
+    report = tmp_path / "report.md"
+
+    assert evaluate_threat_universe_command(
+        [
+            "--universe",
+            "evaluations/threat-universe.yaml",
+            "--output",
+            str(output),
+            "--report",
+            str(report),
+        ]
+    ) == 0
+    regenerated = json.loads(output.read_text(encoding="utf-8"))
+    committed = json.loads(
+        (ROOT / "evaluations/threat-universe-results.json").read_text(encoding="utf-8")
+    )
+
+    assert regenerated == committed
+
+
+def test_outbound_profile_filters_flow_destination() -> None:
+    system = load_system(SYSTEM)
+    profile = ThreatApplicabilityProfile(
+        flow_direction="outbound",
+        flow_source="web-server",
+        flow_destination="internet",
+        protocol="https",
+        trust_boundary_required=False,
+        authentication_required=False,
+        authorization_required=False,
+        privilege_required=False,
+        rationale="Regression profile for outbound counterparty matching.",
+    )
+    extra_https_flow = Flow(
+        **{
+            "from": "web-server",
+            "to": "database",
+            "protocol": "https",
+            "trust_boundary": "dmz-to-internal",
+            "authentication": {"required": False},
+            "authorization": {"required": False},
+        }
+    )
+    system = system.model_copy(update={"flows": (*system.flows, extra_https_flow)})
+
+    result = evaluate_attack_applicability(
+        system,
+        asset=next(asset for asset in system.assets if asset.name == "web-server"),
+        trace_id="outbound-destination-regression",
+        profile=profile,
+    )
+
+    assert result["status"] == "applicable"
+    assert [(item["from"], item["to"]) for item in result["flow_evaluations"]] == [
+        ("web-server", "internet")
+    ]
+
+
+def test_blocked_flow_dominates_unknown_common_precondition() -> None:
+    system = load_system(SYSTEM)
+    profile = ThreatApplicabilityProfile(
+        flow_direction="inbound",
+        flow_source="internet",
+        flow_destination="web-server",
+        protocol="https",
+        trust_boundary_required=True,
+        required_trust_boundary="unrelated-boundary",
+        authentication_required=False,
+        authorization_required=False,
+        privilege_required=False,
+        required_preconditions=("undeclared_precondition",),
+        rationale="Regression profile for status aggregation precedence.",
+    )
+
+    result = evaluate_attack_applicability(
+        system,
+        asset=next(asset for asset in system.assets if asset.name == "web-server"),
+        trace_id="blocked-over-unknown-regression",
+        profile=profile,
+    )
+
+    assert result["status"] == "blocked"
+    assert result["blocked_reasons"] == ["trust_boundary"]
+    assert result["unknown_reasons"] == []

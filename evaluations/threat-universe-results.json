@@ -112,6 +112,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "web-server",
+        "flow_destination": "database",
         "protocol": "tcp",
         "trust_boundary_required": true,
         "required_trust_boundary": "dmz-to-internal",
@@ -182,7 +183,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -455,7 +456,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
@@ -677,6 +678,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "web-server",
+        "flow_destination": "database",
         "protocol": "ssh",
         "trust_boundary_required": true,
         "required_trust_boundary": "dmz-to-internal",
@@ -753,6 +755,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "web-server",
+        "flow_destination": "database",
         "protocol": "tcp",
         "trust_boundary_required": true,
         "required_trust_boundary": "internet-to-dmz",
@@ -823,7 +826,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -1098,7 +1101,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
@@ -1322,6 +1325,7 @@
         "flow_scope": "network",
         "flow_direction": "outbound",
         "flow_source": "web-server",
+        "flow_destination": "internet",
         "protocol": "https",
         "trust_boundary_required": false,
         "required_trust_boundary": null,
@@ -1344,8 +1348,8 @@
           {
             "kind": "flow",
             "id": "web-server->internet",
-            "field": "destination",
-            "value": "internet"
+            "field": "source",
+            "value": "web-server"
           },
           {
             "kind": "flow",
@@ -1408,13 +1412,13 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
                 "id": "web-server->internet",
-                "field": "destination",
-                "value": "internet"
+                "field": "source",
+                "value": "web-server"
               }
             ],
             "provenance": [
@@ -1633,8 +1637,8 @@
               {
                 "kind": "flow",
                 "id": "web-server->internet",
-                "field": "destination",
-                "value": "internet"
+                "field": "source",
+                "value": "web-server"
               },
               {
                 "kind": "flow",
@@ -1683,13 +1687,13 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
                     "id": "web-server->internet",
-                    "field": "destination",
-                    "value": "internet"
+                    "field": "source",
+                    "value": "web-server"
                   }
                 ],
                 "provenance": [
@@ -1905,6 +1909,7 @@
         "flow_scope": "local",
         "flow_direction": "inbound",
         "flow_source": null,
+        "flow_destination": null,
         "protocol": null,
         "trust_boundary_required": null,
         "required_trust_boundary": null,
@@ -1983,6 +1988,7 @@
         "flow_scope": "network",
         "flow_direction": "outbound",
         "flow_source": "web-server",
+        "flow_destination": "internet",
         "protocol": "https",
         "trust_boundary_required": true,
         "required_trust_boundary": "dmz-to-internet",
@@ -2003,8 +2009,8 @@
           {
             "kind": "flow",
             "id": "web-server->internet",
-            "field": "destination",
-            "value": "internet"
+            "field": "source",
+            "value": "web-server"
           },
           {
             "kind": "flow",
@@ -2053,13 +2059,13 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
                 "id": "web-server->internet",
-                "field": "destination",
-                "value": "internet"
+                "field": "source",
+                "value": "web-server"
               }
             ],
             "provenance": [
@@ -2276,8 +2282,8 @@
               {
                 "kind": "flow",
                 "id": "web-server->internet",
-                "field": "destination",
-                "value": "internet"
+                "field": "source",
+                "value": "web-server"
               },
               {
                 "kind": "flow",
@@ -2326,13 +2332,13 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
                     "id": "web-server->internet",
-                    "field": "destination",
-                    "value": "internet"
+                    "field": "source",
+                    "value": "web-server"
                   }
                 ],
                 "provenance": [
@@ -2548,6 +2554,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "internet",
+        "flow_destination": "web-server",
         "protocol": "https",
         "trust_boundary_required": true,
         "required_trust_boundary": "internet-to-dmz",
@@ -2618,7 +2625,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -2891,7 +2898,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
@@ -3113,6 +3120,7 @@
         "flow_scope": "network",
         "flow_direction": "outbound",
         "flow_source": "web-server",
+        "flow_destination": "internet",
         "protocol": "dns",
         "trust_boundary_required": true,
         "required_trust_boundary": "dmz-to-internet",
@@ -3189,6 +3197,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "web-server",
+        "flow_destination": "database",
         "protocol": "tcp",
         "trust_boundary_required": true,
         "required_trust_boundary": "dmz-to-internal",
@@ -3259,7 +3268,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -3532,7 +3541,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
@@ -3754,6 +3763,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "internet",
+        "flow_destination": "web-server",
         "protocol": "https",
         "trust_boundary_required": true,
         "required_trust_boundary": "internet-to-dmz",
@@ -3824,7 +3834,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -4097,7 +4107,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",
@@ -4319,6 +4329,7 @@
         "flow_scope": "local",
         "flow_direction": "inbound",
         "flow_source": null,
+        "flow_destination": null,
         "protocol": null,
         "trust_boundary_required": null,
         "required_trust_boundary": null,
@@ -4397,6 +4408,7 @@
         "flow_scope": "network",
         "flow_direction": "inbound",
         "flow_source": "email",
+        "flow_destination": "web-server",
         "protocol": "smtp",
         "trust_boundary_required": true,
         "required_trust_boundary": "email-to-dmz",
@@ -4455,7 +4467,7 @@
           {
             "condition": "reachability",
             "status": "satisfied",
-            "reason": "An explicit flow reaches the target asset.",
+            "reason": "An explicit flow matches the candidate's flow requirements.",
             "evidence": [
               {
                 "kind": "flow",
@@ -4706,7 +4718,7 @@
               {
                 "condition": "reachability",
                 "status": "satisfied",
-                "reason": "An explicit flow reaches the target asset.",
+                "reason": "An explicit flow matches the candidate's flow requirements.",
                 "evidence": [
                   {
                     "kind": "flow",

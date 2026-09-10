@@ -34,12 +34,14 @@
 
 ## 3. `attack_applicability` の判定順序
 
-1. 候補固有の`flow_scope`、方向、送信元、プロトコルで候補Flowを絞る。ネットワークFlowがなければ`reachability=blocked`。`local`候補はネットワークFlowを要求しない。
+1. 候補固有の`flow_scope`、方向、送信元、送信先、プロトコルで候補Flowを絞る。ネットワークFlowがなければ`reachability=blocked`。`local`候補はネットワークFlowを要求しない。
 2. `trust_boundary_required: false`なら境界の宣言を要求せず、`true`なら`required_trust_boundary`との一致を確認する。必要なのに未指定なら`unknown`。
 3. 認証・認可を候補固有の`*_required`とFlowの明示値で評価する。候補が要求しない場合だけ`false`を根拠に`satisfied`とする。
 4. 候補固有の`privilege_required`が`true`なら`required_privilege`と対象Assetの権限を比較し、`false`なら権限を要求しない。未指定は`unknown`。
 5. `required_preconditions`がある場合、対象SystemModelの`preconditions`にすべて明示されているかを確認する。未宣言は`unknown`とし、既存足場などを推測しない。
 6. 既存TracePathでは、上記の候補固有条件の代わりに`ScenarioContext`の条件を使う。`privilege_transition`が指定された場合は送信元・対象Assetの権限を比較する。
+
+候補共通の前提条件と、候補に対する代替Flowは分けて評価します。まず代替Flowを集約し、その後に共通前提条件を統合します。明示的な不成立を未確定より優先し、最終状態は`blocked > unknown > applicable`の順で決めます。
 
 Flowごとの条件を次の表で集約します。
 
@@ -49,7 +51,7 @@ Flowごとの条件を次の表で集約します。
 | 全Flowが`blocked` | `blocked` |
 | blockedはなく、unknownがある | `unknown` |
 
-複数Flowは`flow_evaluations`に個別保存します。代替Flowのうち1つがapplicableなら、TracePathはapplicableです。
+複数Flowは`flow_evaluations`に個別保存します。代替Flowのうち1つがapplicableなら、共通前提にblocked/unknownがなく、かつ他のFlowで成立可能性が残る場合はTracePathはapplicableです。全Flowがblockedなら、共通前提がunknownでもTracePathはblockedです。
 
 ## 4. `detection_feasibility` の判定順序
 

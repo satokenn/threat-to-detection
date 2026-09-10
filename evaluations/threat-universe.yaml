@@ -26,6 +26,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: web-server
+      flow_destination: database
       protocol: tcp
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internal
@@ -50,6 +51,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: web-server
+      flow_destination: database
       protocol: ssh
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internal
@@ -74,6 +76,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: internet
+      flow_destination: web-server
       protocol: https
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -99,6 +102,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: internet
+      flow_destination: web-server
       protocol: https
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -120,6 +124,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: web-server
+      flow_destination: database
       protocol: tcp
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internal
@@ -143,6 +148,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: web-server
+      flow_destination: database
       protocol: tcp
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -167,6 +173,7 @@ threats:
       flow_scope: network
       flow_direction: outbound
       flow_source: web-server
+      flow_destination: internet
       protocol: https
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internet
@@ -188,6 +195,7 @@ threats:
       flow_scope: network
       flow_direction: outbound
       flow_source: web-server
+      flow_destination: internet
       protocol: dns
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internet
@@ -211,6 +219,7 @@ threats:
       flow_scope: network
       flow_direction: outbound
       flow_source: web-server
+      flow_destination: internet
       protocol: dns
       trust_boundary_required: true
       required_trust_boundary: dmz-to-internet
@@ -233,6 +242,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: internet
+      flow_destination: web-server
       protocol: https
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -256,6 +266,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: vpn-gateway
+      flow_destination: web-server
       protocol: vpn
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -277,6 +288,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: email
+      flow_destination: web-server
       protocol: smtp
       trust_boundary_required: true
       required_trust_boundary: email-to-dmz
@@ -317,6 +329,7 @@ threats:
       flow_scope: network
       flow_direction: inbound
       flow_source: internet
+      flow_destination: web-server
       protocol: https
       trust_boundary_required: true
       required_trust_boundary: internet-to-dmz
@@ -340,6 +353,7 @@ threats:
       flow_scope: network
       flow_direction: outbound
       flow_source: web-server
+      flow_destination: internet
       protocol: https
       trust_boundary_required: false
       authentication_required: false

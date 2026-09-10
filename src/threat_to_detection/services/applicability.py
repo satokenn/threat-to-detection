@@ -103,17 +103,14 @@ def evaluate_attack_applicability(
         )
 
     statuses = tuple(item["status"] for item in flow_evaluations)
+    flow_status = _aggregate_flow_status(statuses)
     precondition_statuses = tuple(item["status"] for item in preconditions)
-    if "blocked" in precondition_statuses:
-        status = "blocked"
-    elif "unknown" in precondition_statuses:
+    if "blocked" in precondition_statuses or flow_status == "blocked":
+        status: ApplicabilityStatus = "blocked"
+    elif "unknown" in precondition_statuses or flow_status == "unknown":
         status = "unknown"
-    elif "applicable" in statuses:
-        status: ApplicabilityStatus = "applicable"
-    elif all(value == "blocked" for value in statuses):
-        status = "blocked"
     else:
-        status = "unknown"
+        status = "applicable"
     conditions = tuple(
         condition for condition in preconditions
     ) + tuple(
@@ -175,6 +172,16 @@ def evaluate_attack_applicability(
         "trace_id": trace_id,
         "flow_evaluations": list(flow_evaluations),
     }
+
+
+def _aggregate_flow_status(statuses: tuple[str, ...]) -> ApplicabilityStatus:
+    """Aggregate alternative flows before applying candidate-common conditions."""
+
+    if "applicable" in statuses:
+        return "applicable"
+    if statuses and all(value == "blocked" for value in statuses):
+        return "blocked"
+    return "unknown"
 
 
 def evaluate_detection_feasibility(
@@ -724,6 +731,8 @@ def _candidate_flows(
         )
     if profile is not None and profile.flow_source is not None:
         flows = tuple(flow for flow in flows if flow.source == profile.flow_source)
+    if profile is not None and profile.flow_destination is not None:
+        flows = tuple(flow for flow in flows if flow.destination == profile.flow_destination)
     if profile is not None and profile.protocol is not None:
         protocol = profile.protocol.casefold()
         flows = tuple(

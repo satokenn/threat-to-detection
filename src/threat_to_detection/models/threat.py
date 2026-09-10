@@ -53,6 +53,7 @@ class ThreatApplicabilityProfile(BaseModel):
     flow_scope: Literal["network", "local"] = "network"
     flow_direction: Literal["inbound", "outbound", "either"] = "inbound"
     flow_source: str | None = None
+    flow_destination: str | None = None
     protocol: str | None = None
     trust_boundary_required: StrictBool | None = None
     required_trust_boundary: str | None = None
@@ -63,7 +64,13 @@ class ThreatApplicabilityProfile(BaseModel):
     required_preconditions: tuple[str, ...] = ()
     rationale: str
 
-    @field_validator("flow_source", "protocol", "required_trust_boundary", "required_privilege")
+    @field_validator(
+        "flow_source",
+        "flow_destination",
+        "protocol",
+        "required_trust_boundary",
+        "required_privilege",
+    )
     @classmethod
     def validate_optional_text(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():
