@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-01T00:01:01Z","event_id":"process_creation","EventID":2,"source":"synthetic-endpoint","message":"routine scheduled maintenance","process.command_line":"maintenance-tool --status"}

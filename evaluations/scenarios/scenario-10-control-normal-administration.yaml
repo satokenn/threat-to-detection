@@ -1,0 +1,35 @@
+schema_version: "1.0"
+scenario_id: scenario-10-control-normal-administration
+title: 正常な管理操作を対照データとして扱う
+scenario_type: control
+status: control_not_evaluated
+entrypoint:
+  type: control
+  source: safe_synthetic_telemetry
+  identifiers:
+    behavior: normal_administration
+    attack_techniques: []
+analysis_chain:
+  weakness: なし。攻撃経路を作らず、正常操作を誤検知評価の対照にする。
+  exploitation: 実環境の管理者やコマンドは使わず、匿名の抽象イベントだけを使う。
+  attacker_action: 想定しない。
+  monitoring: 管理作業で通常発生するProcessまたはIdentityイベントを記録する。
+  required_logs:
+    - event_type: process_creation
+      fields: [timestamp, event_id, process.command_line]
+available_logs: [process_creation]
+expected_gaps:
+  - stage: baseline
+    reason: 正常業務の母集団がないため、誤検知率は未評価である。
+  - stage: treatment
+    reason: 対応する脅威知識がないため、生成候補を適用しない。
+positive_samples: ../samples/multidomain/scenario-10-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-10-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: []
+  result_policy: 正常操作を攻撃成功や検知成功と解釈しない。

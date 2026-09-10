@@ -66,6 +66,8 @@ class NvdClient:
         cve_id: str | None = None,
         cpe_name: str | None = None,
         keyword: str | None = None,
+        pub_start_date: str | None = None,
+        pub_end_date: str | None = None,
         start_index: int = 0,
         results_per_page: int = 100,
     ) -> tuple[Vulnerability, ...]:
@@ -81,6 +83,8 @@ class NvdClient:
             raise ValueError("start_index must be >= 0 and results_per_page must be > 0")
         if results_per_page > 2_000:
             raise ValueError("results_per_page must be <= 2000")
+        if bool(pub_start_date) != bool(pub_end_date):
+            raise ValueError("pub_start_date and pub_end_date must be provided together")
 
         params = {
             "startIndex": start_index,
@@ -92,6 +96,9 @@ class NvdClient:
             params["cpeName"] = cpe_name
         elif keyword:
             params["keywordSearch"] = keyword
+        if pub_start_date:
+            params["pubStartDate"] = pub_start_date
+            params["pubEndDate"] = pub_end_date
 
         payload = self._request(params)
         vulnerabilities = payload.get("vulnerabilities", [])
@@ -218,14 +225,18 @@ def normalize_cve(cve: dict[str, Any]) -> Vulnerability:
         if description_item.get("lang") == "en" and description_item.get("value")
     )
     score = _cvss_score(cve.get("metrics", {}))
-    product, versions = _affected_software(cve.get("configurations", []))
+    vendor, product, versions = _affected_software(cve.get("configurations", []))
     return Vulnerability(
         cve_id=cve["id"],
         product=product,
+        vendor=vendor,
         affected_versions=versions,
         description=description,
         cwes=cwes,
         cvss_score=score,
+        published=cve.get("published"),
+        last_modified=cve.get("lastModified"),
+        vuln_status=cve.get("vulnStatus"),
     )
 
 
@@ -240,7 +251,9 @@ def _cvss_score(metrics: dict[str, Any]) -> float | None:
     return None
 
 
-def _affected_software(configurations: list[dict[str, Any]]) -> tuple[str, tuple[str, ...]]:
+def _affected_software(
+    configurations: list[dict[str, Any]],
+) -> tuple[str, str, tuple[str, ...]]:
     """Extract one representative product/version from NVD CPE matches.
 
     The full CPE applicability tree is intentionally preserved for a later
@@ -252,7 +265,8 @@ def _affected_software(configurations: list[dict[str, Any]]) -> tuple[str, tuple
                 criteria = match.get("criteria", "")
                 parts = criteria.split(":")
                 if len(parts) > 5:
+                    vendor = parts[3]
                     product = parts[4]
                     version = parts[5]
-                    return product, (() if version in {"*", "-"} else (version,))
-    return "unknown", ()
+                    return vendor, product, (() if version in {"*", "-"} else (version,))
+    return "unknown", "unknown", ()

@@ -9,6 +9,10 @@ Detection StrategyとAnalyticの`detects`関係、Data Component、ログソー�
 
 通信を伴うテストは、HTTPレスポンスをfixtureまたは差し替え可能な openerで再現します。テストから実際のNVD APIを呼び出しません。
 
+`select-cves`はNVDの公開日を90日単位の窓に分けて候補集合を取得し、Rejectedと分類不能な
+レコードを除外した後、固定seedで7カテゴリから各6件を抽出します。候補集合と選定結果は
+評価用JSONへ保存します。
+
 `analyze`ではfixtureまたはキャッシュを優先し、既定でネットワークへ接続しません。不足データの取得は`--online`、キャッシュの強制更新は`--refresh`で明示します。取得モード、URL、リリース、raw SHA-256、正規化・除外条件は分析結果へ保存されます。
 
 CAPECの配布データは公式ダウンロードページから取得します。取得したXMLの全量をGitへ含めず、テストでは`tests/fixtures/capec/`の最小XMLを使います。

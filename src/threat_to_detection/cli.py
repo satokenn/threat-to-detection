@@ -5,7 +5,7 @@ import hashlib
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
@@ -24,6 +24,16 @@ from threat_to_detection.collectors.nvd import NVD_CVE_URL, NvdApiError, NvdClie
 from threat_to_detection.models.provenance import DataSnapshot, display_path, file_sha256
 from threat_to_detection.models.system import load_system
 from threat_to_detection.reporters.sigma import sigma_rule_matches_event
+from threat_to_detection.services.cve_selection import (
+    CVE_PERIOD_END,
+    CVE_PERIOD_START,
+    DEFAULT_SAMPLE_SIZE,
+    DEFAULT_SELECTION_SEED,
+    CveSelectionError,
+    iter_date_windows,
+    load_kev_ids,
+    select_cves,
+)
 from threat_to_detection.services.pipeline import run_analysis
 
 LOGGER = logging.getLogger(__name__)
@@ -43,6 +53,38 @@ def build_fetch_parser() -> argparse.ArgumentParser:
     selector.add_argument("--keyword")
     parser.add_argument("--limit", type=int, default=20)
     parser.add_argument("--no-cache", action="store_true")
+    return parser
+
+
+def build_select_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="threat-to-detection select-cves",
+        description="Build and sample a reproducible stratified CVE evaluation set",
+    )
+    parser.add_argument("--start-date", type=_iso_date, default=CVE_PERIOD_START)
+    parser.add_argument("--end-date", type=_iso_date, default=CVE_PERIOD_END)
+    parser.add_argument("--seed", type=int, default=DEFAULT_SELECTION_SEED)
+    parser.add_argument("--per-category", type=int, default=DEFAULT_SAMPLE_SIZE)
+    parser.add_argument("--output", default="evaluations/cve-selection.json")
+    parser.add_argument("--nvd-cache", default="data/cache/nvd-selection")
+    parser.add_argument("--nvd-fixture")
+    parser.add_argument("--kev-file", help="Optional CISA KEV JSON or CSV export")
+    network = parser.add_mutually_exclusive_group()
+    network.add_argument(
+        "--offline",
+        action="store_true",
+        help="Disable NVD network access; use --nvd-fixture or an existing cache",
+    )
+    network.add_argument(
+        "--online",
+        action="store_true",
+        help="Allow NVD downloads for missing date-window responses",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Force refresh of NVD date-window responses; implies --online",
+    )
     return parser
 
 
@@ -135,6 +177,100 @@ def fetch_cves(argv: list[str]) -> int:
         score = f" CVSS={vulnerability.cvss_score}" if vulnerability.cvss_score else ""
         print(f"{vulnerability.cve_id}{score} {vulnerability.description}")
     return 0
+
+
+def select_cves_command(argv: list[str]) -> int:
+    args = build_select_parser().parse_args(argv)
+    if args.offline and (args.online or args.refresh):
+        build_select_parser().error("--offline cannot be combined with --online or --refresh")
+    try:
+        vulnerabilities, request_metadata = _fetch_selection_vulnerabilities(args)
+        kev_ids = load_kev_ids(args.kev_file) if args.kev_file else frozenset()
+        result = select_cves(
+            vulnerabilities,
+            start_date=args.start_date,
+            end_date=args.end_date,
+            seed=args.seed,
+            sample_size=args.per_category,
+            kev_ids=kev_ids,
+        )
+    except (CveSelectionError, OSError, ValueError, NvdApiError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+    document = result.to_mapping()
+    document["source"] = {
+        "nvd_api": NVD_CVE_URL,
+        "nvd_request_windows": len(request_metadata),
+        "nvd_requests": [
+            {
+                "url": record.get("url"),
+                "mode": record.get("mode"),
+                "path": record.get("path"),
+                "release": record.get("release"),
+                "retrieved_at": record.get("retrieved_at"),
+                "raw_sha256": record.get("raw_sha256"),
+            }
+            for record in request_metadata
+        ],
+        "kev": {
+            "path": str(args.kev_file) if args.kev_file else None,
+            "loaded": bool(args.kev_file),
+            "record_count": len(kev_ids),
+        },
+    }
+    output = Path(args.output)
+    try:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    except OSError as error:
+        print(f"error: could not write {output}: {error}", file=sys.stderr)
+        return 2
+
+    print(f"selection: {output}")
+    print(f"candidates: {len(result.candidates)}")
+    print(f"selected: {len(result.selected)}")
+    print(f"seed: {result.seed}")
+    return 0
+
+
+def _fetch_selection_vulnerabilities(
+    args: argparse.Namespace,
+) -> tuple[tuple[Any, ...], tuple[dict[str, Any], ...]]:
+    payload: dict[str, Any] | None = None
+    if args.nvd_fixture:
+        payload = json.loads(Path(args.nvd_fixture).read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("NVD fixture must contain a JSON object")
+
+    def opener(_request: Any, _timeout: float) -> dict[str, Any]:
+        assert payload is not None
+        return payload
+
+    client = NvdClient(
+        api_key=None,
+        cache_dir=None if payload is not None else args.nvd_cache,
+        opener=opener if payload is not None else None,
+        allow_network=bool(args.online or args.refresh or payload is not None),
+        refresh=args.refresh,
+    )
+    vulnerabilities: dict[str, Any] = {}
+    for pub_start, pub_end in iter_date_windows(args.start_date, args.end_date):
+        for vulnerability in client.fetch_all(
+            pub_start_date=pub_start,
+            pub_end_date=pub_end,
+        ):
+            vulnerabilities.setdefault(vulnerability.cve_id, vulnerability)
+    return tuple(vulnerabilities.values()), client.request_metadata
+
+
+def _iso_date(value: str) -> date:
+    try:
+        return date.fromisoformat(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("date must be YYYY-MM-DD") from error
 
 
 def analyze_scenario(argv: list[str]) -> int:
@@ -782,6 +918,8 @@ def main(argv: list[str] | None = None) -> int:
         argv = sys.argv[1:]
     if argv and argv[0] == "fetch-cves":
         return fetch_cves(argv[1:])
+    if argv and argv[0] in {"select-cves", "collect-cves"}:
+        return select_cves_command(argv[1:])
     if argv and argv[0] == "analyze":
         return analyze_scenario(argv[1:])
     args = build_parser().parse_args(argv)

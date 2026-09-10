@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-10T00:01:01Z","event_id":"process_creation","source":"synthetic-admin","message":"normal scheduled administration","process.command_line":"maintenance-tool --status"}

@@ -42,6 +42,22 @@ def test_api_key_is_sent_in_header() -> None:
     assert captured[0].headers["Apikey"] == "secret"
 
 
+def test_publication_window_is_sent_to_nvd() -> None:
+    captured: list[Request] = []
+
+    def opener(request: Request, timeout: float) -> dict:
+        captured.append(request)
+        return {"vulnerabilities": []}
+
+    NvdClient(cache_dir=None, opener=opener).search_cves(
+        pub_start_date="2021-01-01T00:00:00.000",
+        pub_end_date="2021-03-31T23:59:59.999",
+    )
+
+    assert "pubStartDate=2021-01-01T00%3A00%3A00.000" in captured[0].full_url
+    assert "pubEndDate=2021-03-31T23%3A59%3A59.999" in captured[0].full_url
+
+
 def test_search_for_software_uses_generated_cpe() -> None:
     captured: list[Request] = []
 

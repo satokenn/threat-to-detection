@@ -1,0 +1,1 @@
+{"timestamp":"2026-01-05T00:01:01Z","event_id":"process_creation","source":"synthetic-endpoint","message":"routine service restart","process.command_line":"service-tool --restart-check"}

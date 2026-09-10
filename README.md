@@ -50,6 +50,14 @@ Sigma候補には決定的な`id`と`detection_candidate`という`rule_kind`が
 これはATT&CKのテレメトリ要件から作った候補であり、本番ルールや実攻撃の検知結果ではありません。
 生成物の所有範囲とSHA-256は`manifest.json`に記録されます。
 
+Issue #23の評価対象CVE 42件を再現可能に取得・選定する手順は
+[`docs/cve-selection.md`](docs/cve-selection.md)にまとめています。既定の固定seedは`23`です。
+
+```bash
+uv run threat-to-detection select-cves --online \
+  --output evaluations/cve-selection.json
+```
+
 ## 再現可能な評価
 
 同梱の評価シナリオは、外部APIへ接続せずにパイプライン全体を確認できます。

@@ -1,0 +1,35 @@
+schema_version: "1.0"
+scenario_id: scenario-09-cloud-control-plane
+title: クラウド管理操作を入口に監視可能性を分析する
+scenario_type: cloud
+status: not_evaluated
+entrypoint:
+  type: cloud_behavior
+  source: public_behavior_knowledge
+  identifiers:
+    behavior: abstract_cloud_control_plane_change
+    attack_techniques: []
+analysis_chain:
+  weakness: CVEではなく、クラウド管理プレーンの設定変更を分析対象にする。
+  exploitation: 実テナント、認証情報、クラウド操作コマンドは用いない。
+  attacker_action: ATT&CK対応はfixtureに存在しないため推測しない。
+  monitoring: Audit Log、Identity、Resource Configurationを監視する。
+  required_logs:
+    - event_type: cloud.audit
+      fields: [timestamp, event_id, principal, action, resource, outcome]
+available_logs: [cloud_audit]
+expected_gaps:
+  - stage: behavior-to-ATT&CK
+    reason: クラウド分野のTechniqueが現行fixtureにない。
+  - stage: telemetry-source
+    reason: クラウド監査ログの具体的な収集仕様が未確定である。
+positive_samples: ../samples/multidomain/scenario-09-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-09-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: []
+  result_policy: クラウド固有の対応表を追加するまで、候補の有効性を評価しない。
