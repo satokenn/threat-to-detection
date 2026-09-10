@@ -36,6 +36,39 @@ EntrypointType = Literal[
 Confidence = Literal["unknown", "low", "medium", "high"]
 
 
+class TelemetryRequirement(BaseModel):
+    """An event type and the fields needed to analyse it.
+
+    Keeping the event and field dimensions together prevents a scenario from
+    claiming complete coverage merely because an event family exists.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    event_type: str
+    fields: tuple[str, ...] = ()
+
+    @field_validator("event_type")
+    @classmethod
+    def validate_event_type(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("event_type must not be empty")
+        return value.strip()
+
+    @field_validator("fields", mode="before")
+    @classmethod
+    def normalize_fields(cls, value: Any) -> tuple[str, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, str):
+            value = (value,)
+        if not isinstance(value, (list, tuple, set)):
+            raise ValueError("telemetry fields must be strings or lists of strings")
+        if any(not isinstance(item, str) or not item.strip() for item in value):
+            raise ValueError("telemetry fields must contain non-empty strings")
+        return tuple(dict.fromkeys(item.strip() for item in value))
+
+
 class ScenarioEntrypoint(BaseModel):
     """The threat knowledge record that starts an analysis."""
 
@@ -69,7 +102,9 @@ class ScenarioContext(BaseModel):
     attacker_actions: tuple[str, ...] = ()
     technique_ids: tuple[str, ...] = ()
     required_telemetry: tuple[str, ...] = ()
+    required_logs: tuple[TelemetryRequirement, ...] = ()
     available_telemetry: tuple[str, ...] = ()
+    available_log_fields: dict[str, tuple[str, ...]] = {}
     evidence: tuple[str, ...] = ()
     rationale: str = ""
     confidence: Confidence = "unknown"
@@ -112,6 +147,39 @@ class ScenarioContext(BaseModel):
         if len(result) != len(value):
             raise ValueError("scenario sequence fields must contain non-empty strings")
         return tuple(dict.fromkeys(result))
+
+    @field_validator("required_logs", mode="before")
+    @classmethod
+    def normalize_log_requirements(cls, value: Any) -> tuple[TelemetryRequirement, ...]:
+        if value is None:
+            return ()
+        if not isinstance(value, (list, tuple)):
+            raise ValueError("required_logs must be a list of mappings")
+        result: list[TelemetryRequirement] = []
+        for item in value:
+            if isinstance(item, str):
+                item = {"event_type": item}
+            if not isinstance(item, dict):
+                raise ValueError("required_logs must contain mappings")
+            requirement = TelemetryRequirement.model_validate(item)
+            if requirement not in result:
+                result.append(requirement)
+        return tuple(result)
+
+    @field_validator("available_log_fields", mode="before")
+    @classmethod
+    def normalize_available_log_fields(cls, value: Any) -> dict[str, tuple[str, ...]]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("available_log_fields must be a mapping")
+        result: dict[str, tuple[str, ...]] = {}
+        for event_type, fields in value.items():
+            requirement = TelemetryRequirement.model_validate(
+                {"event_type": event_type, "fields": fields}
+            )
+            result[requirement.event_type] = requirement.fields
+        return result
 
     @field_validator("rationale")
     @classmethod

@@ -28,6 +28,8 @@
 - ATT&CKのDetection Strategy / AnalyticからData Component、イベント、フィールドを検知要件へ正規化する
 - CVE → CWE → CAPEC → ATT&CK → Detection Requirement → Sigmaを統合実行する
 - 中間結果、完全経路、対応付けギャップ、Sigma出典をJSONで出力する
+- Issue #23で選定したCVE集合を対象に、CVE → CWE → CAPEC → ATT&CK → Detection Requirementの
+  累積到達率・段階間到達率・最遠到達段階・mapping gapを一括集計する
 - fixtureを使ったCLIのオフライン評価と、決定的なSigma候補・manifestを生成する
 
 ### 3.2 今後の拡張候補
@@ -188,7 +190,7 @@ system:
 
 ### 9.1 信頼境界とアクセス条件
 
-資産には任意の`trust_zone`（例: `dmz`、`internal`）と`privilege_level`を、通信フローには任意の`trust_boundary`を記録できる。フローの`authentication`と`authorization`は、到達に必要な条件を明示するための構造化フィールドである。
+資産には任意の`trust_zone`（例: `dmz`、`internal`）と`privilege_level`を、通信フローには任意の`trust_boundary`を記録できる。フローの`authentication`と`authorization`は、到達に必要な条件を明示するための構造化フィールドである。ブロック未指定（`null`）は`unknown`、`required: false`は明示的に不要、`required: true`は必要を表す。未指定を不要とは解釈しない。
 
 ```yaml
 system:
@@ -213,6 +215,11 @@ system:
         scopes: [database.read]
         privilege: read
 ```
+
+シナリオの`analysis_chain.required_logs`は`event_type`と`fields`を保持する。`available_logs`を
+イベントとフィールドのmappingで記述すれば、`threat_analysis.coverage`の
+`covered_events`/`missing_events`および`covered_fields`/`missing_fields`で個別に比較できる。
+`required_authentication_logs`も検知可能性の必要イベントとしてcoverageに含まれる。
 
 未指定の認証・認可・権限条件は`unknown`（JSONでは`null`または空配列）として保持し、`https`などのプロトコル、資産のゾーン名、フローの向きから認証済み・認可済みであると推測しない。分析結果では、対象資産のゾーン、関連フローの境界、認証・認可条件、シナリオで明示された必要権限・権限遷移・認証ログを追跡できるようにする。
 
@@ -284,6 +291,7 @@ rationale       対応付けの根拠
 - NVDレスポンスの正規化
 - CAPEC XMLの解析とCWE逆引き
 - ATT&CK STIXの解析とCAPEC逆引き
+- 選定CVE集合の到達段階、候補数、mapping gap、カテゴリ別集計
 - 0件、1件、複数件の対応
 
 ### 統合テスト
@@ -296,6 +304,9 @@ flowchart TD
 ```
 
 実際の外部APIに依存するテストは作らない。外部データの更新確認は、別の手動または定期処理として扱う。
+
+`evaluate-cves`は対象システムへの関連性を適用しない公開情報のベースラインである。
+具体的なCWE IDだけをCWE到達として扱い、`NVD-CWE-noinfo`と`NVD-CWE-Other`は除外する。
 
 ## 15. 今後の拡張ルール
 

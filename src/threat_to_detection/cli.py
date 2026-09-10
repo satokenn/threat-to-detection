@@ -10,20 +10,13 @@ from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
 
-from threat_to_detection.collectors.attack import (
-    ATTACK_STIX_URL,
-    AttackCollector,
-    AttackDataError,
-)
-from threat_to_detection.collectors.capec import (
-    CAPEC_XML_URL,
-    CapecCollector,
-    CapecDataError,
-)
+from threat_to_detection.collectors.attack import ATTACK_STIX_URL, AttackCollector, AttackDataError
+from threat_to_detection.collectors.capec import CAPEC_XML_URL, CapecCollector, CapecDataError
 from threat_to_detection.collectors.nvd import NVD_CVE_URL, NvdApiError, NvdClient
 from threat_to_detection.models.provenance import DataSnapshot, display_path, file_sha256
 from threat_to_detection.models.system import load_system
 from threat_to_detection.reporters.sigma import sigma_rule_matches_event
+from threat_to_detection.services.cve_evaluation import evaluate_cves, load_selection
 from threat_to_detection.services.cve_selection import (
     CVE_PERIOD_END,
     CVE_PERIOD_START,
@@ -32,8 +25,10 @@ from threat_to_detection.services.cve_selection import (
     CveSelectionError,
     iter_date_windows,
     load_kev_ids,
+    replay_selection,
     select_cves,
 )
+from threat_to_detection.services.multidomain import evaluate_catalog, render_report
 from threat_to_detection.services.pipeline import run_analysis
 
 LOGGER = logging.getLogger(__name__)
@@ -68,6 +63,13 @@ def build_select_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", default="evaluations/cve-selection.json")
     parser.add_argument("--nvd-cache", default="data/cache/nvd-selection")
     parser.add_argument("--nvd-fixture")
+    parser.add_argument(
+        "--replay",
+        help=(
+            "Validate and replay a committed selection JSON without NVD access; "
+            "can be used with --offline"
+        ),
+    )
     parser.add_argument("--kev-file", help="Optional CISA KEV JSON or CSV export")
     network = parser.add_mutually_exclusive_group()
     network.add_argument(
@@ -84,6 +86,52 @@ def build_select_parser() -> argparse.ArgumentParser:
         "--refresh",
         action="store_true",
         help="Force refresh of NVD date-window responses; implies --online",
+    )
+    return parser
+
+
+def build_evaluate_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="threat-to-detection evaluate-cves",
+        description="Evaluate mapping reachability for a selected CVE set",
+    )
+    parser.add_argument(
+        "--selection",
+        default="evaluations/cve-selection.json",
+        help="Issue #23 selection output (default: evaluations/cve-selection.json)",
+    )
+    parser.add_argument(
+        "--capec-path",
+        "--capec-fixture",
+        dest="capec_path",
+        help="CAPEC XML snapshot or fixture",
+    )
+    parser.add_argument(
+        "--attack-path",
+        "--attack-fixture",
+        dest="attack_path",
+        help="Enterprise ATT&CK STIX snapshot or fixture",
+    )
+    parser.add_argument(
+        "--output",
+        default="evaluations/cve-evaluation.json",
+        help="Machine-readable evaluation output",
+    )
+    network = parser.add_mutually_exclusive_group()
+    network.add_argument(
+        "--offline",
+        action="store_true",
+        help="Disable downloads; use existing snapshots or fixtures",
+    )
+    network.add_argument(
+        "--online",
+        action="store_true",
+        help="Download missing CAPEC and ATT&CK snapshots",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Refresh CAPEC and ATT&CK snapshots; implies --online",
     )
     return parser
 
@@ -159,6 +207,20 @@ def build_analyze_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def build_evaluate_scenarios_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="threat-to-detection evaluate-scenarios",
+        description="Evaluate every checked-in multi-domain scenario offline",
+    )
+    parser.add_argument("--index", default="evaluations/scenarios/index.yaml")
+    parser.add_argument("--capec-fixture", required=True)
+    parser.add_argument("--attack-fixture", required=True)
+    parser.add_argument("--nvd-fixture")
+    parser.add_argument("--output", default="evaluations/multidomain-results.json")
+    parser.add_argument("--report", default="evaluations/report.md")
+    return parser
+
+
 def fetch_cves(argv: list[str]) -> int:
     args = build_fetch_parser().parse_args(argv)
     try:
@@ -184,6 +246,29 @@ def select_cves_command(argv: list[str]) -> int:
     if args.offline and (args.online or args.refresh):
         build_select_parser().error("--offline cannot be combined with --online or --refresh")
     try:
+        if args.replay:
+            if args.nvd_fixture or args.online or args.refresh or args.kev_file:
+                build_select_parser().error(
+                    "--replay cannot be combined with NVD, network, refresh, or KEV options"
+                )
+            document = replay_selection(args.replay)
+            document["source"] = {
+                "mode": "replay",
+                "replay_of": {
+                    "path": display_path(Path(args.replay)),
+                    "sha256": file_sha256(Path(args.replay)),
+                },
+            }
+            output = Path(args.output)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(
+                json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+            selected = document.get("selected", [])
+            print(f"selection: {output}")
+            print(f"selected: {len(selected) if isinstance(selected, list) else 0}")
+            print("mode: replay")
+            return 0
         vulnerabilities, request_metadata = _fetch_selection_vulnerabilities(args)
         kev_ids = load_kev_ids(args.kev_file) if args.kev_file else frozenset()
         result = select_cves(
@@ -233,6 +318,134 @@ def select_cves_command(argv: list[str]) -> int:
     print(f"candidates: {len(result.candidates)}")
     print(f"selected: {len(result.selected)}")
     print(f"seed: {result.seed}")
+    return 0
+
+
+def evaluate_cves_command(argv: list[str]) -> int:
+    args = build_evaluate_parser().parse_args(argv)
+    if args.offline and (args.online or args.refresh):
+        build_evaluate_parser().error("--offline cannot be combined with --online or --refresh")
+    try:
+        vulnerabilities, categories = load_selection(args.selection)
+        errors: list[str] = []
+        allow_online = args.online or args.refresh
+        capec_input = (
+            args.capec_path
+            if args.capec_path
+            else None
+            if allow_online
+            else "tests/fixtures/evaluation/capec-selected.xml"
+        )
+        attack_input = (
+            args.attack_path
+            if args.attack_path
+            else None
+            if allow_online
+            else "tests/fixtures/evaluation/attack-selected.json"
+        )
+        capec_dataset = _load_capec(
+            capec_input,
+            args.offline,
+            errors,
+            online=allow_online,
+            refresh=args.refresh,
+        )
+        attack_dataset = _load_attack(
+            attack_input,
+            args.offline,
+            errors,
+            online=allow_online,
+            refresh=args.refresh,
+        )
+        if errors or capec_dataset is None or attack_dataset is None:
+            raise ValueError("; ".join(errors) or "CAPEC and ATT&CK datasets are required")
+        capec_path = (
+            Path(capec_input)
+            if capec_input
+            else Path("data/cache/capec_latest.xml")
+        )
+        attack_path = (
+            Path(attack_input)
+            if attack_input
+            else Path("data/cache/enterprise-attack.json")
+        )
+        capec_mode = "fixture" if capec_input else "refresh" if args.refresh else "online"
+        attack_mode = "fixture" if attack_input else "refresh" if args.refresh else "online"
+        result = evaluate_cves(
+            vulnerabilities,
+            categories=categories,
+            capec_dataset=capec_dataset,
+            attack_dataset=attack_dataset,
+            selection_path=str(args.selection),
+        )
+        document = result.to_mapping()
+        document["source"] = {
+            "selection": {
+                "path": display_path(Path(args.selection)),
+                "sha256": file_sha256(Path(args.selection)),
+            },
+            "capec": {
+                "url": CAPEC_XML_URL,
+                "mode": capec_mode,
+                "path": display_path(capec_path),
+                "sha256": file_sha256(capec_path),
+            },
+            "attack": {
+                "url": ATTACK_STIX_URL,
+                "mode": attack_mode,
+                "path": display_path(attack_path),
+                "sha256": file_sha256(attack_path),
+            },
+        }
+        output = Path(args.output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    except (OSError, ValueError, CapecDataError, AttackDataError, json.JSONDecodeError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+    metrics = document["metrics"]
+    print(f"evaluation: {output}")
+    print(f"cves: {metrics['population']}")
+    print(f"detection reached: {metrics['cumulative']['detection']['reached_count']}")
+    print(f"mapping gaps: {metrics['mapping_gaps']['total']}")
+    return 0
+
+
+def evaluate_scenarios_command(argv: list[str]) -> int:
+    args = build_evaluate_scenarios_parser().parse_args(argv)
+    errors: list[str] = []
+    try:
+        capec_dataset = _load_capec(args.capec_fixture, True, errors)
+        attack_dataset = _load_attack(args.attack_fixture, True, errors)
+        nvd_client = _build_nvd_client(
+            args.nvd_fixture,
+            None,
+            errors,
+            offline=True,
+        )
+        if errors or capec_dataset is None or attack_dataset is None:
+            raise ValueError("; ".join(errors) or "evaluation fixtures are required")
+        result = evaluate_catalog(
+            args.index,
+            capec_dataset=capec_dataset,
+            attack_dataset=attack_dataset,
+            nvd_client=nvd_client,
+        )
+        output = Path(args.output)
+        report = Path(args.report)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        report.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report.write_text(render_report(result), encoding="utf-8")
+    except (OSError, ValueError, CapecDataError, AttackDataError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+    print(f"evaluation: {output}")
+    print(f"report: {report}")
+    print(f"scenarios: {result['summary']['scenario_count']}")
     return 0
 
 
@@ -920,6 +1133,10 @@ def main(argv: list[str] | None = None) -> int:
         return fetch_cves(argv[1:])
     if argv and argv[0] in {"select-cves", "collect-cves"}:
         return select_cves_command(argv[1:])
+    if argv and argv[0] == "evaluate-cves":
+        return evaluate_cves_command(argv[1:])
+    if argv and argv[0] == "evaluate-scenarios":
+        return evaluate_scenarios_command(argv[1:])
     if argv and argv[0] == "analyze":
         return analyze_scenario(argv[1:])
     args = build_parser().parse_args(argv)
