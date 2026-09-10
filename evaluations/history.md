@@ -57,3 +57,17 @@ Apache HTTP Server 2.4.50 / CVE-2021-42013 / CWE-22 / CAPEC-126を確認した�
 - 出力: [`report.md`](report.md)、[`results/aggregates/`](results/aggregates/)、[`results/figures/`](results/figures/)
 - 制約: 追加ケースは判定機構の境界条件を確認する安全な合成fixtureであり、実環境での削減効果や一般化を示さない
 - 判定: `pass`。applicable / blocked / unknownを同じ候補評価の母集団で再現し、`unknown`を候補削減数へ合算していない
+
+> この評価は、候補母集団と脅威仮説を分離していなかったため、後続の脅威候補母集団評価で置き換えた。
+
+## threat-universe-applicability-003
+
+- 対象: [`threat-universe.yaml`](threat-universe.yaml)の公開ATT&CK Technique由来の脅威仮説18件
+- 抽出: 固定seed 41、domainごとに2件、12件を層別ランダム抽出
+- 評価: [`threat-universe-system.yaml`](threat-universe-system.yaml)の明示flow・境界・認証・認可・権限・前提条件との照合
+- 結果: applicable 5、blocked 3、unknown 4、候補削減率0.250
+- blocked理由: 通信経路2、信頼境界1
+- unknown理由: 前提条件3、信頼境界1
+- 出力: [`threat-universe-results.json`](threat-universe-results.json)、[`threat-universe-report.md`](threat-universe-report.md)
+- 判定: `pass`。候補生成と対象環境への適用可否を分離し、未確定条件を`unknown`として保持した。YAMLの`expected_outcome`も実行時に照合した。
+- 制約: Techniqueの公開IDと対象環境照合用プロファイルによる安全なfixture評価であり、実攻撃の成立率・検知性能・最新母集団の完全性は示さない

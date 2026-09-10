@@ -75,11 +75,7 @@
       "scenario-01-cve-example-process",
       "scenario-03-malware-process-execution",
       "scenario-04-malware-ingress-transfer",
-      "scenario-05-malware-staged-behavior",
-      "scenario-11-threat-model-blocked-no-flow",
-      "scenario-12-threat-model-blocked-boundary",
-      "scenario-13-threat-model-blocked-privilege",
-      "scenario-14-threat-model-unknown-access"
+      "scenario-05-malware-staged-behavior"
     ],
     "scenarios": [
       {
@@ -112,38 +108,6 @@
         "applicable_count": 2,
         "blocked_count": 0,
         "unknown_count": 0,
-        "candidate_reduction_rate": 0.0
-      },
-      {
-        "scenario_id": "scenario-11-threat-model-blocked-no-flow",
-        "before_candidate_count": 1,
-        "applicable_count": 0,
-        "blocked_count": 1,
-        "unknown_count": 0,
-        "candidate_reduction_rate": 1.0
-      },
-      {
-        "scenario_id": "scenario-12-threat-model-blocked-boundary",
-        "before_candidate_count": 1,
-        "applicable_count": 0,
-        "blocked_count": 1,
-        "unknown_count": 0,
-        "candidate_reduction_rate": 1.0
-      },
-      {
-        "scenario_id": "scenario-13-threat-model-blocked-privilege",
-        "before_candidate_count": 1,
-        "applicable_count": 0,
-        "blocked_count": 1,
-        "unknown_count": 0,
-        "candidate_reduction_rate": 1.0
-      },
-      {
-        "scenario_id": "scenario-14-threat-model-unknown-access",
-        "before_candidate_count": 1,
-        "applicable_count": 0,
-        "blocked_count": 0,
-        "unknown_count": 1,
         "candidate_reduction_rate": 0.0
       }
     ],
@@ -207,106 +171,15 @@
         "scenario_id": "scenario-05-malware-staged-behavior",
         "status": "unknown",
         "count": 0
-      },
-      {
-        "scenario_id": "scenario-11-threat-model-blocked-no-flow",
-        "status": "applicable",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-11-threat-model-blocked-no-flow",
-        "status": "blocked",
-        "count": 1
-      },
-      {
-        "scenario_id": "scenario-11-threat-model-blocked-no-flow",
-        "status": "unknown",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-12-threat-model-blocked-boundary",
-        "status": "applicable",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-12-threat-model-blocked-boundary",
-        "status": "blocked",
-        "count": 1
-      },
-      {
-        "scenario_id": "scenario-12-threat-model-blocked-boundary",
-        "status": "unknown",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-13-threat-model-blocked-privilege",
-        "status": "applicable",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-13-threat-model-blocked-privilege",
-        "status": "blocked",
-        "count": 1
-      },
-      {
-        "scenario_id": "scenario-13-threat-model-blocked-privilege",
-        "status": "unknown",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-14-threat-model-unknown-access",
-        "status": "applicable",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-14-threat-model-unknown-access",
-        "status": "blocked",
-        "count": 0
-      },
-      {
-        "scenario_id": "scenario-14-threat-model-unknown-access",
-        "status": "unknown",
-        "count": 1
       }
     ],
-    "reasons": [
-      {
-        "reason": "communication_path",
-        "label": "通信経路不成立",
-        "blocked_count": 1,
-        "unknown_count": 0
-      },
-      {
-        "reason": "trust_boundary",
-        "label": "信頼境界条件不成立",
-        "blocked_count": 1,
-        "unknown_count": 1
-      },
-      {
-        "reason": "authentication",
-        "label": "認証条件不成立",
-        "blocked_count": 0,
-        "unknown_count": 1
-      },
-      {
-        "reason": "authorization",
-        "label": "認可条件不成立",
-        "blocked_count": 0,
-        "unknown_count": 1
-      },
-      {
-        "reason": "privilege",
-        "label": "権限不足",
-        "blocked_count": 1,
-        "unknown_count": 0
-      }
-    ],
+    "reasons": [],
     "totals": {
-      "before_candidate_count": 10,
+      "before_candidate_count": 6,
       "applicable_count": 6,
-      "blocked_count": 3,
-      "unknown_count": 1,
-      "candidate_reduction_rate": 0.3
+      "blocked_count": 0,
+      "unknown_count": 0,
+      "candidate_reduction_rate": 0.0
     }
   }
 }

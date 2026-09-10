@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from typing import Any, Literal
 
 from threat_to_detection.models.system import Asset, Flow, SystemModel
+from threat_to_detection.models.threat import ThreatApplicabilityProfile
 
 ApplicabilityStatus = Literal["applicable", "blocked", "unknown"]
 ConditionStatus = Literal["satisfied", "blocked", "unknown"]
@@ -34,17 +35,55 @@ def evaluate_attack_applicability(
     *,
     asset: Asset,
     trace_id: str,
+    profile: ThreatApplicabilityProfile | None = None,
 ) -> dict[str, Any]:
-    """Evaluate all explicit inbound flows for one ATT&CK candidate.
+    """Evaluate explicit system conditions for one ATT&CK candidate.
 
-    A candidate flow is an explicit flow whose destination is the candidate's
-    target asset.  Alternative flows remain visible in ``flow_evaluations``;
-    one fully satisfied flow is sufficient for an applicable result.
+    Existing pipeline traces use the scenario-level requirements.  A threat
+    universe supplies a candidate-specific profile, including flow direction
+    and prerequisites, so candidates are not all evaluated against the same
+    asset-level condition set.
     """
 
-    flows = tuple(flow for flow in system.flows if flow.destination == asset.name)
+    preconditions = _precondition_conditions(system, profile)
+    if profile is not None and profile.flow_scope == "local":
+        conditions = preconditions or (
+            _condition(
+                "reachability",
+                "satisfied",
+                "The candidate is local and does not require a network flow.",
+                evidence=(),
+                provenance=_provenance(
+                    system,
+                    f"asset:{asset.name}",
+                    "local_access",
+                    source_type="threat_candidate",
+                    rationale=profile.rationale,
+                ),
+            ),
+        )
+        statuses = tuple(item["status"] for item in conditions)
+        status: ApplicabilityStatus = (
+            "blocked"
+            if "blocked" in statuses
+            else "unknown"
+            if "unknown" in statuses
+            else "applicable"
+        )
+        blocked_reasons = tuple(
+            _reason_code(item["condition"]) for item in conditions if item["status"] == "blocked"
+        )
+        return _applicability_result(
+            status,
+            conditions,
+            blocked_reasons=blocked_reasons,
+            trace_id=trace_id,
+            flow_evaluations=(),
+        )
+
+    flows = _candidate_flows(system, asset, profile)
     flow_evaluations = tuple(
-        _evaluate_flow(system, asset, flow, trace_id, index)
+        _evaluate_flow(system, asset, flow, trace_id, index, profile)
         for index, flow in enumerate(flows, start=1)
     )
     if not flow_evaluations:
@@ -64,13 +103,20 @@ def evaluate_attack_applicability(
         )
 
     statuses = tuple(item["status"] for item in flow_evaluations)
-    if "applicable" in statuses:
+    precondition_statuses = tuple(item["status"] for item in preconditions)
+    if "blocked" in precondition_statuses:
+        status = "blocked"
+    elif "unknown" in precondition_statuses:
+        status = "unknown"
+    elif "applicable" in statuses:
         status: ApplicabilityStatus = "applicable"
     elif all(value == "blocked" for value in statuses):
         status = "blocked"
     else:
         status = "unknown"
     conditions = tuple(
+        condition for condition in preconditions
+    ) + tuple(
         condition
         for item in flow_evaluations
         for condition in item["evaluated_conditions"]
@@ -87,6 +133,20 @@ def evaluate_attack_applicability(
             reason
             for item in flow_evaluations
             for reason in item["unknown_reasons"]
+        )
+    )
+    unknown_reasons = tuple(
+        dict.fromkeys(
+            (*unknown_reasons, *(_reason_code(item["condition"])
+                                 for item in preconditions
+                                 if item["status"] == "unknown"))
+        )
+    )
+    blocked_reasons = tuple(
+        dict.fromkeys(
+            (*blocked_reasons, *(_reason_code(item["condition"])
+                                 for item in preconditions
+                                 if item["status"] == "blocked"))
         )
     )
     result_blocked_reasons = blocked_reasons if status == "blocked" else ()
@@ -228,6 +288,7 @@ def _evaluate_flow(
     flow: Flow,
     trace_id: str,
     index: int,
+    profile: ThreatApplicabilityProfile | None = None,
 ) -> dict[str, Any]:
     conditions: list[dict[str, Any]] = []
     blocked_reasons: list[str] = []
@@ -242,8 +303,17 @@ def _evaluate_flow(
         _condition(
             "reachability",
             "satisfied",
-            "An explicit flow reaches the target asset.",
-            evidence=_flow_evidence(flow, "destination"),
+            (
+                "An explicit flow matches the candidate's flow requirements."
+                if profile is not None
+                else "An explicit flow reaches the target asset."
+            ),
+            evidence=_flow_evidence(
+                flow,
+                "source"
+                if profile is not None and profile.flow_direction == "outbound"
+                else "destination",
+            ),
             provenance=_provenance(system, f"flow:{flow.source}->{flow.destination}", "flows"),
         ),
     )
@@ -253,8 +323,8 @@ def _evaluate_flow(
         unknown_reasons,
         _condition(
             "trust_boundary",
-            _trust_boundary_status(system, flow),
-            _trust_boundary_reason(system, flow),
+            _trust_boundary_status(system, flow, profile),
+            _trust_boundary_reason(system, flow, profile),
             evidence=_flow_evidence(flow, "trust_boundary"),
             provenance=_provenance(
                 system,
@@ -263,7 +333,18 @@ def _evaluate_flow(
             ),
         ),
     )
-    auth_status, auth_reason = _access_status(flow.authentication, "authentication")
+    auth_status, auth_reason = _access_status(
+        flow.authentication,
+        "authentication",
+        required=(
+            profile.authentication_required
+            if profile is not None and profile.authentication_required is not None
+            else None
+        ),
+        candidate_requirement_declared=(
+            profile is None or profile.authentication_required is not None
+        ),
+    )
     _append_condition(
         conditions,
         blocked_reasons,
@@ -280,7 +361,18 @@ def _evaluate_flow(
             ),
         ),
     )
-    authz_status, authz_reason = _access_status(flow.authorization, "authorization")
+    authz_status, authz_reason = _access_status(
+        flow.authorization,
+        "authorization",
+        required=(
+            profile.authorization_required
+            if profile is not None and profile.authorization_required is not None
+            else None
+        ),
+        candidate_requirement_declared=(
+            profile is None or profile.authorization_required is not None
+        ),
+    )
     _append_condition(
         conditions,
         blocked_reasons,
@@ -297,7 +389,7 @@ def _evaluate_flow(
             ),
         ),
     )
-    privilege_status, privilege_reason = _privilege_status(system, asset, flow)
+    privilege_status, privilege_reason = _privilege_status(system, asset, flow, profile)
     _append_condition(
         conditions,
         blocked_reasons,
@@ -372,7 +464,25 @@ def _evaluate_flow(
     }
 
 
-def _access_status(condition: Any, label: str) -> tuple[ConditionStatus, str]:
+def _access_status(
+    condition: Any,
+    label: str,
+    *,
+    required: bool | None = None,
+    candidate_requirement_declared: bool = True,
+) -> tuple[ConditionStatus, str]:
+    if not candidate_requirement_declared:
+        return "unknown", f"Whether the candidate requires {label} is not declared."
+    if required is False:
+        return "satisfied", f"The candidate does not require {label}."
+    if required is True:
+        if condition is None:
+            return "unknown", f"The candidate requires {label}, but the condition is not declared."
+        if condition.satisfied is False or condition.required is False:
+            return "blocked", f"The explicit {label} condition does not satisfy the candidate."
+        if condition.satisfied is True:
+            return "satisfied", f"The candidate's {label} prerequisite is satisfied."
+        return "unknown", f"The candidate's {label} prerequisite cannot be determined."
     if condition is None:
         return "unknown", f"{label.capitalize()} condition is not declared."
     if condition.satisfied is False:
@@ -384,8 +494,21 @@ def _access_status(condition: Any, label: str) -> tuple[ConditionStatus, str]:
     return "unknown", f"The required {label} condition cannot be determined."
 
 
-def _trust_boundary_status(system: SystemModel, flow: Flow) -> ConditionStatus:
-    required = system.scenario.required_trust_boundary
+def _trust_boundary_status(
+    system: SystemModel,
+    flow: Flow,
+    profile: ThreatApplicabilityProfile | None = None,
+) -> ConditionStatus:
+    if profile is not None:
+        if profile.trust_boundary_required is False:
+            return "satisfied"
+        if profile.trust_boundary_required is None:
+            return "unknown"
+        required = profile.required_trust_boundary
+        if required is None:
+            return "unknown"
+    else:
+        required = system.scenario.required_trust_boundary
     if flow.trust_boundary is None:
         return "unknown"
     if required is not None and flow.trust_boundary != required:
@@ -393,8 +516,22 @@ def _trust_boundary_status(system: SystemModel, flow: Flow) -> ConditionStatus:
     return "satisfied"
 
 
-def _trust_boundary_reason(system: SystemModel, flow: Flow) -> str:
-    required = system.scenario.required_trust_boundary
+def _trust_boundary_reason(
+    system: SystemModel,
+    flow: Flow,
+    profile: ThreatApplicabilityProfile | None = None,
+) -> str:
+    if profile is not None and profile.trust_boundary_required is False:
+        return "The candidate does not require a declared trust boundary."
+    if profile is not None and profile.trust_boundary_required is None:
+        return "Whether the candidate requires a trust boundary is not declared."
+    required = (
+        profile.required_trust_boundary
+        if profile is not None
+        else system.scenario.required_trust_boundary
+    )
+    if profile is not None and required is None:
+        return "The candidate's required trust boundary is not declared."
     if flow.trust_boundary is None:
         return "Trust boundary is not declared."
     if required is not None and flow.trust_boundary != required:
@@ -402,8 +539,23 @@ def _trust_boundary_reason(system: SystemModel, flow: Flow) -> str:
     return "The trust boundary is explicitly declared."
 
 
-def _privilege_status(system: SystemModel, asset: Asset, flow: Flow) -> tuple[ConditionStatus, str]:
-    required = system.scenario.required_privilege
+def _privilege_status(
+    system: SystemModel,
+    asset: Asset,
+    flow: Flow,
+    profile: ThreatApplicabilityProfile | None = None,
+) -> tuple[ConditionStatus, str]:
+    if profile is not None:
+        if profile.privilege_required is False:
+            return "satisfied", "The candidate does not require a privilege level."
+        if profile.privilege_required is True:
+            required = profile.required_privilege
+            if required is None:
+                return "unknown", "The candidate's required privilege is not declared."
+        else:
+            return "unknown", "Whether the candidate requires privilege is not declared."
+    else:
+        required = system.scenario.required_privilege
     if required is None:
         return "unknown", "Required privilege is not declared."
     if asset.privilege_level is None:
@@ -539,6 +691,7 @@ def _reason_code(condition: str) -> str:
         "authorization": "authorization",
         "privilege": "privilege",
         "privilege_transition": "privilege_transition",
+        "preconditions": "preconditions",
     }[condition]
 
 
@@ -552,6 +705,71 @@ def _reason_text(
     if status == "unknown":
         return [f"Unknown because: {', '.join(unknown_reasons)}."]
     return ["All required attack applicability conditions are satisfied."]
+
+
+def _candidate_flows(
+    system: SystemModel,
+    asset: Asset,
+    profile: ThreatApplicabilityProfile | None,
+) -> tuple[Flow, ...]:
+    if profile is None or profile.flow_direction == "inbound":
+        flows = tuple(flow for flow in system.flows if flow.destination == asset.name)
+    elif profile.flow_direction == "outbound":
+        flows = tuple(flow for flow in system.flows if flow.source == asset.name)
+    else:
+        flows = tuple(
+            flow
+            for flow in system.flows
+            if flow.source == asset.name or flow.destination == asset.name
+        )
+    if profile is not None and profile.flow_source is not None:
+        flows = tuple(flow for flow in flows if flow.source == profile.flow_source)
+    if profile is not None and profile.protocol is not None:
+        protocol = profile.protocol.casefold()
+        flows = tuple(
+            flow for flow in flows if flow.protocol and flow.protocol.casefold() == protocol
+        )
+    return flows
+
+
+def _precondition_conditions(
+    system: SystemModel,
+    profile: ThreatApplicabilityProfile | None,
+) -> tuple[dict[str, Any], ...]:
+    if profile is None or not profile.required_preconditions:
+        return ()
+    available = set(system.preconditions)
+    missing = tuple(value for value in profile.required_preconditions if value not in available)
+    if missing:
+        return (
+            _condition(
+                "preconditions",
+                "unknown",
+                f"Required preconditions are not declared: {', '.join(missing)}.",
+                evidence=(),
+                provenance=_provenance(
+                    system,
+                    f"scenario:{system.metadata.get('name', 'scenario')}",
+                    "preconditions",
+                    source_type="system_model",
+                    rationale="The target system does not declare all candidate preconditions.",
+                ),
+            ),
+        )
+    return (
+        _condition(
+            "preconditions",
+            "satisfied",
+            "All candidate preconditions are declared by the target system.",
+            evidence=(),
+            provenance=_provenance(
+                system,
+                f"scenario:{system.metadata.get('name', 'scenario')}",
+                "preconditions",
+                source_type="system_model",
+            ),
+        ),
+    )
 
 
 def _provenance(

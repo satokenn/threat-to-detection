@@ -1,14 +1,14 @@
 schema_version: "1.0"
 scenario_id: scenario-11-threat-model-blocked-no-flow
 title: "脅威モデル評価: 通信経路がない候補をblockedにする"
-scenario_type: malware
-status: threat_model_fixture
+scenario_type: evaluation_fixture
+status: condition_fixture
 asset:
   name: scenario-11-threat-model-blocked-no-flow
   type: endpoint
   privilege_level: user
 entrypoint:
-  type: malware_behavior
+  type: technique
   source: safe_synthetic_threat_model_fixture
   identifiers:
     behavior: abstract_process_execution

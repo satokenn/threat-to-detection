@@ -1,12 +1,41 @@
 """Pydantic models and YAML loading for the target system threat model."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator, model_validator
 
 from threat_to_detection.models.scenario import ScenarioContext
+
+
+class ExpectedOutcome(BaseModel):
+    """Executable expectation for a single scenario evaluation."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+    attack_applicability: Literal["applicable", "blocked", "unknown"]
+    blocked_reason: str | None = None
+    unknown_reasons: tuple[str, ...] = ()
+
+    @field_validator("attack_applicability", "blocked_reason")
+    @classmethod
+    def validate_outcome_text(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("expected outcome text must not be empty")
+        return value.strip() if value is not None else None
+
+    @field_validator("unknown_reasons", mode="before")
+    @classmethod
+    def normalize_unknown_reasons(cls, value: Any) -> tuple[str, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, str):
+            value = (value,)
+        if not isinstance(value, (list, tuple, set)):
+            raise ValueError("unknown_reasons must be a string or sequence")
+        return tuple(
+            dict.fromkeys(item.strip() for item in value if isinstance(item, str) and item.strip())
+        )
 
 
 class Software(BaseModel):
@@ -139,6 +168,8 @@ class SystemModel(BaseModel):
     flows: tuple[Flow, ...] = ()
     metadata: dict[str, Any] = {}
     scenario: ScenarioContext = Field(default_factory=ScenarioContext)
+    preconditions: tuple[str, ...] = ()
+    expected_outcome: ExpectedOutcome | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -191,6 +222,20 @@ class SystemModel(BaseModel):
         if len(set(names)) != len(names):
             raise ValueError("asset names must be unique")
         return self
+
+    @field_validator("preconditions", mode="before")
+    @classmethod
+    def normalize_preconditions(cls, value: Any) -> tuple[str, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, str):
+            value = (value,)
+        if not isinstance(value, (list, tuple, set)):
+            raise ValueError("preconditions must be a string or sequence")
+        result = tuple(item.strip() for item in value if isinstance(item, str) and item.strip())
+        if len(result) != len(value):
+            raise ValueError("preconditions must contain non-empty strings")
+        return tuple(dict.fromkeys(result))
 
     @property
     def scenario_type(self) -> str:
@@ -326,6 +371,8 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         "scenario": scenario,
         "assets": [asset],
         "flows": document.get("flows", ()),
+        "preconditions": document.get("preconditions", ()),
+        "expected_outcome": document.get("expected_outcome"),
     }
 
 

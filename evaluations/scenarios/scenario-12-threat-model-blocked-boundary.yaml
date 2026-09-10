@@ -1,8 +1,8 @@
 schema_version: "1.0"
 scenario_id: scenario-12-threat-model-blocked-boundary
 title: "脅威モデル評価: 信頼境界が一致しない候補をblockedにする"
-scenario_type: malware
-status: threat_model_fixture
+scenario_type: evaluation_fixture
+status: condition_fixture
 asset:
   name: scenario-12-threat-model-blocked-boundary
   type: endpoint
@@ -17,7 +17,7 @@ flows:
     authorization:
       required: false
 entrypoint:
-  type: malware_behavior
+  type: technique
   source: safe_synthetic_threat_model_fixture
   identifiers:
     behavior: abstract_process_execution

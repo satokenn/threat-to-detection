@@ -53,19 +53,3 @@ scenarios:
     file: scenario-10-control-normal-administration.yaml
     domain: control
     status: control_not_evaluated
-  - id: scenario-11-threat-model-blocked-no-flow
-    file: scenario-11-threat-model-blocked-no-flow.yaml
-    domain: malware
-    status: threat_model_fixture
-  - id: scenario-12-threat-model-blocked-boundary
-    file: scenario-12-threat-model-blocked-boundary.yaml
-    domain: malware
-    status: threat_model_fixture
-  - id: scenario-13-threat-model-blocked-privilege
-    file: scenario-13-threat-model-blocked-privilege.yaml
-    domain: malware
-    status: threat_model_fixture
-  - id: scenario-14-threat-model-unknown-access
-    file: scenario-14-threat-model-unknown-access.yaml
-    domain: malware
-    status: threat_model_fixture

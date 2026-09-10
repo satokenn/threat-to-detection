@@ -2,7 +2,8 @@
 
 ## 1. 用語・状態定義
 
-評価対象は、公開情報またはシナリオのATT&CK候補を表す`TracePath`です。
+評価対象は、公開情報またはシナリオのATT&CK候補を表す`TracePath`、または公開Techniqueを
+母集団から抽出した`ThreatUniverseCandidate`です。
 `before_candidate`は脅威モデルを適用する前の候補であることを示し、候補を削除せずに判定結果を付与します。
 
 攻撃適用可否（`attack_applicability`）は、対象環境で攻撃経路が成立し得るかを表します。
@@ -26,18 +27,19 @@
 | 認可 | `Flow.authorization` | `system_model` |
 | 権限 | `Asset.privilege_level` / `ScenarioContext.required_privilege` | `system_model` / `scenario_author` |
 | 権限遷移 | `ScenarioContext.privilege_transition` | `scenario_author` |
+| 候補固有条件 | `ThreatApplicabilityProfile`のflow方向・送信元・プロトコル・前提条件 | `scenario_author` / `public_threat_intel` |
 | 検知 | `DetectionRequirement`、`required_logs`、`Asset.logs`、`available_log_fields` | `public_threat_intel` / `scenario_author` / `system_model` |
 
 `satisfied: false`は明示的な不成立、`satisfied: true`は明示的な成立です。`required: false`はその条件が不要であることを表します。
 
 ## 3. `attack_applicability` の判定順序
 
-1. 対象Assetへの明示的なInbound Flowを列挙する。Flowがなければ`reachability=blocked`。
-2. `trust_boundary`が明示されていれば満たす。未指定は`unknown`。
-3. 認証条件を評価する。`required: false`または明示的成立は`satisfied`、明示的不成立は`blocked`、その他は`unknown`。
-4. 認可条件を同じ規則で評価する。
-5. `required_privilege`と対象Assetの権限を比較する。不足は`blocked`、未指定または比較不能は`unknown`。
-6. `privilege_transition`が指定された場合は、送信元・対象Assetの権限を比較する。不成立は`blocked`、比較不能は`unknown`。未指定の遷移は`satisfied`（追加条件なし）。
+1. 候補固有の`flow_scope`、方向、送信元、プロトコルで候補Flowを絞る。ネットワークFlowがなければ`reachability=blocked`。`local`候補はネットワークFlowを要求しない。
+2. `trust_boundary_required: false`なら境界の宣言を要求せず、`true`なら`required_trust_boundary`との一致を確認する。必要なのに未指定なら`unknown`。
+3. 認証・認可を候補固有の`*_required`とFlowの明示値で評価する。候補が要求しない場合だけ`false`を根拠に`satisfied`とする。
+4. 候補固有の`privilege_required`が`true`なら`required_privilege`と対象Assetの権限を比較し、`false`なら権限を要求しない。未指定は`unknown`。
+5. `required_preconditions`がある場合、対象SystemModelの`preconditions`にすべて明示されているかを確認する。未宣言は`unknown`とし、既存足場などを推測しない。
+6. 既存TracePathでは、上記の候補固有条件の代わりに`ScenarioContext`の条件を使う。`privilege_transition`が指定された場合は送信元・対象Assetの権限を比較する。
 
 Flowごとの条件を次の表で集約します。
 
@@ -117,6 +119,9 @@ Inbound Flow、境界、認証・認可、対象権限が明示的に成立し�
 既存の文字列だった`threat_analysis[].detection_feasibility`は、`status`、`reasons`、`evidence`、`evaluated_conditions`、`provenance`を持つオブジェクトへ拡張しました。従来のイベント／フィールド情報は`coverage`に残します。
 
 `evaluate-scenarios`は固定fixtureで`multidomain-results.json`と`report.md`を再生成します。
+判定境界fixtureは`scenarios/condition-fixtures.yaml`で別実行し、YAMLの`expected_outcome`と
+実測した候補状態を比較します。公開脅威候補の母集団は`threat-universe.yaml`に保持し、
+`evaluate-threat-universe`が固定seedで層別抽出して候補別プロファイルを評価します。
 
 ## 10. fixture/test matrix
 

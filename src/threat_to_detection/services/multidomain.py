@@ -45,6 +45,7 @@ def evaluate_catalog(
         analysis = result.to_mapping(system)
         coverage = _coverage_summary(analysis.get("threat_analysis", ()))
         threat_evaluation = analysis.get("threat_evaluation", _empty_threat_evaluation())
+        expected_outcome = _scenario_expected_outcome(system, threat_evaluation)
         results.append(
             {
                 "scenario_id": entry.get("id", scenario_path.stem),
@@ -66,6 +67,7 @@ def evaluate_catalog(
                 "mapping_gaps": len(result.mapping_gaps),
                 "sigma_rules": sum(len(rules) for rules in result.sigma_rules.values()),
                 "coverage": coverage,
+                "expected_outcome": expected_outcome,
                 "errors": analysis.get("errors", []),
             }
         )
@@ -118,10 +120,12 @@ def render_report(result: dict[str, Any]) -> str:
             "本レポートのcoverageは後者だけを表します。実環境ログや実攻撃への有効性は未評価です。",
             "候補削減率は `blocked / before_candidate_count` とし、`unknown` は削減に含めません。",
             (
-                "今回のblocked / unknownは、判定機構の境界条件を確認するための"
-                "安全な合成fixtureを追加して測定しています。"
+                "脅威モデル条件の境界値fixtureは、実脅威カタログとは分離して"
+                "`scenarios/condition-fixtures.yaml`で評価します。"
             ),
-            "この小規模なfixtureで削減率が観測されたことは、実環境での候補削減効果や一般化を示しません。",
+            "本カタログの6候補はすべてapplicableであり、ここでは候補削減効果は観測されません。",
+            "複数の公開脅威候補から対象システムに適用可能なものを選別する評価は、"
+            "`threat-universe-results.json`で別途実施します。",
             (
                 "blocked / unknown の理由は、通信経路、信頼境界、認証、認可、"
                 "権限、権限遷移を区別して集計します。"
@@ -190,6 +194,50 @@ def _empty_threat_evaluation() -> dict[str, Any]:
             status: 0 for status in ("detectable", "partial", "unavailable", "unknown")
         },
         "paths": [],
+    }
+
+
+def _scenario_expected_outcome(
+    system: Any,
+    threat_evaluation: dict[str, Any],
+) -> dict[str, Any]:
+    """Compare a scenario's declared expectation with measured candidates."""
+
+    declared_model = system.expected_outcome
+    if declared_model is None:
+        return {"status": "not_declared", "declared": None, "actual": None, "mismatches": []}
+
+    paths = threat_evaluation.get("paths", ())
+    applicability = [
+        path.get("attack_applicability", {}) for path in paths if isinstance(path, dict)
+    ]
+    statuses = tuple(item.get("status") for item in applicability)
+    actual = {
+        "attack_applicability": statuses[0] if len(set(statuses)) == 1 and statuses else "mixed",
+        "blocked_reason": (
+            applicability[0].get("blocked_reason") if len(applicability) == 1 else None
+        ),
+        "unknown_reasons": sorted(
+            {
+                reason
+                for item in applicability
+                for reason in item.get("unknown_reasons", ())
+            }
+        ),
+    }
+    declared = declared_model.model_dump(mode="json")
+    mismatches: list[str] = []
+    if declared["attack_applicability"] != actual["attack_applicability"]:
+        mismatches.append("attack_applicability")
+    if declared.get("blocked_reason") != actual["blocked_reason"]:
+        mismatches.append("blocked_reason")
+    if sorted(declared.get("unknown_reasons", ())) != actual["unknown_reasons"]:
+        mismatches.append("unknown_reasons")
+    return {
+        "status": "passed" if not mismatches else "failed",
+        "declared": declared,
+        "actual": actual,
+        "mismatches": mismatches,
     }
 
 

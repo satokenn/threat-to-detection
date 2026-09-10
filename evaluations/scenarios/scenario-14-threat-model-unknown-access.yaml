@@ -1,8 +1,8 @@
 schema_version: "1.0"
 scenario_id: scenario-14-threat-model-unknown-access
 title: "脅威モデル評価: 認証・認可・境界の未指定をunknownにする"
-scenario_type: malware
-status: threat_model_fixture
+scenario_type: evaluation_fixture
+status: condition_fixture
 asset:
   name: scenario-14-threat-model-unknown-access
   type: endpoint
@@ -12,7 +12,7 @@ flows:
     to: scenario-14-threat-model-unknown-access
     protocol: https
 entrypoint:
-  type: malware_behavior
+  type: technique
   source: safe_synthetic_threat_model_fixture
   identifiers:
     behavior: abstract_process_execution

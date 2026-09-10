@@ -1,8 +1,8 @@
 schema_version: "1.0"
 scenario_id: scenario-13-threat-model-blocked-privilege
 title: "脅威モデル評価: 必要権限を満たさない候補をblockedにする"
-scenario_type: malware
-status: threat_model_fixture
+scenario_type: evaluation_fixture
+status: condition_fixture
 asset:
   name: scenario-13-threat-model-blocked-privilege
   type: endpoint
@@ -17,7 +17,7 @@ flows:
     authorization:
       required: false
 entrypoint:
-  type: malware_behavior
+  type: technique
   source: safe_synthetic_threat_model_fixture
   identifiers:
     behavior: abstract_privileged_process_execution

@@ -213,5 +213,44 @@
       "この小規模なfixtureの候補削減率は、実環境での効果や一般化を示さない。",
       "unknownはblockedや候補削減数へ合算していない。"
     ]
+  },
+  {
+    "evaluation_id": "threat-universe-applicability-003",
+    "schema_version": "1.0",
+    "mode": "fixture",
+    "sources": {
+      "threat_universe": "evaluations/threat-universe.yaml",
+      "target_system": "evaluations/threat-universe-system.yaml"
+    },
+    "sampling": {
+      "method": "stratified_random_without_replacement",
+      "seed": 41,
+      "population": 18,
+      "sampled": 12
+    },
+    "counts": {
+      "applicable": 5,
+      "blocked": 3,
+      "unknown": 4,
+      "candidate_reduction_rate": 0.25
+    },
+    "blocked_reasons": {
+      "communication_path": 2,
+      "trust_boundary": 1
+    },
+    "unknown_reasons": {
+      "preconditions": 3,
+      "trust_boundary": 1
+    },
+    "artifacts": [
+      "evaluations/threat-universe-results.json",
+      "evaluations/threat-universe-report.md"
+    ],
+    "status": "pass",
+    "notes": [
+      "公開ATT&CK Technique IDを広い候補母集団として扱い、候補別の評価プロファイルで対象システムへ照合した。",
+      "候補生成だけでは適用可能とせず、未確定条件はunknownとして保持した。",
+      "expected_outcomeを実行時に照合した。"
+    ]
   }
 ]

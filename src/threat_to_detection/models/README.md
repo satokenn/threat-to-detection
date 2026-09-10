@@ -4,7 +4,7 @@
 
 - `system.py`: 資産、ソフトウェア、通信経路、YAML入力
 - `vulnerability.py`: CVE、CWE、CVSSなどの正規化結果
-- `threat.py`: 攻撃候補と出典・信頼度
+- `threat.py`: 攻撃候補、公開出典、候補固有の適用条件、脅威母集団
 - `detection.py`: ATT&CKのDetection Strategy / Analytic、Data Component、検知要件、ログ不足
 - `capec.py`: CAPEC Attack Pattern
 - `attack.py`: MITRE ATT&CK TechniqueとTactic
