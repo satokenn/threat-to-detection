@@ -30,6 +30,10 @@ from threat_to_detection.services.cve_selection import (
 )
 from threat_to_detection.services.multidomain import evaluate_catalog, render_report
 from threat_to_detection.services.pipeline import run_analysis
+from threat_to_detection.services.visualization import (
+    DEFAULT_SCENARIO_IDS,
+    generate_evaluation_visualizations,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -218,6 +222,36 @@ def build_evaluate_scenarios_parser() -> argparse.ArgumentParser:
     parser.add_argument("--nvd-fixture")
     parser.add_argument("--output", default="evaluations/multidomain-results.json")
     parser.add_argument("--report", default="evaluations/report.md")
+    return parser
+
+
+def build_visualize_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="threat-to-detection visualize-evaluations",
+        description="Generate reproducible SVG charts from evaluation A and B results",
+    )
+    parser.add_argument(
+        "--evaluation-a",
+        default="evaluations/cve-evaluation.json",
+        help="Issue #26 CVE mapping evaluation JSON",
+    )
+    parser.add_argument(
+        "--evaluation-b",
+        default="evaluations/multidomain-results.json",
+        help="Issue #27 threat-model evaluation JSON",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="evaluations/results",
+        help="Directory for aggregate data and SVG figures",
+    )
+    parser.add_argument(
+        "--scenario",
+        dest="scenario_ids",
+        action="append",
+        choices=DEFAULT_SCENARIO_IDS,
+        help="Scenario to include in Evaluation B charts (repeatable)",
+    )
     return parser
 
 
@@ -446,6 +480,25 @@ def evaluate_scenarios_command(argv: list[str]) -> int:
     print(f"evaluation: {output}")
     print(f"report: {report}")
     print(f"scenarios: {result['summary']['scenario_count']}")
+    return 0
+
+
+def visualize_evaluations_command(argv: list[str]) -> int:
+    args = build_visualize_parser().parse_args(argv)
+    try:
+        paths = generate_evaluation_visualizations(
+            args.evaluation_a,
+            args.evaluation_b,
+            args.output_dir,
+            scenario_ids=args.scenario_ids or DEFAULT_SCENARIO_IDS,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+
+    print(f"visualizations: {args.output_dir}")
+    for name, path in paths.items():
+        print(f"{name}: {path}")
     return 0
 
 
@@ -940,7 +993,7 @@ def _analysis_metrics(document: dict[str, Any]) -> dict[str, int]:
         "detection_requirements": requirements,
         "sigma_rules": sigma_rules,
         "complete_paths": len(document.get("trace_paths", [])),
-        "candidate_paths": len(document.get("trace_paths", [])),
+        "candidate_paths": len(document.get("candidate_paths", [])),
         "mapping_gaps": len(document.get("mapping_gaps", [])),
     }
 
@@ -1137,6 +1190,8 @@ def main(argv: list[str] | None = None) -> int:
         return evaluate_cves_command(argv[1:])
     if argv and argv[0] == "evaluate-scenarios":
         return evaluate_scenarios_command(argv[1:])
+    if argv and argv[0] in {"visualize-evaluations", "visualize"}:
+        return visualize_evaluations_command(argv[1:])
     if argv and argv[0] == "analyze":
         return analyze_scenario(argv[1:])
     args = build_parser().parse_args(argv)

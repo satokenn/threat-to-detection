@@ -59,7 +59,7 @@ def test_fixture_output_contract_is_machine_readable(tmp_path: Path) -> None:
         "detection_requirements": 1,
         "sigma_rules": 1,
         "complete_paths": 1,
-        "candidate_paths": 1,
+        "candidate_paths": 2,
         "mapping_gaps": 2,
         "positive_samples": 1,
         "positive_matched": 1,

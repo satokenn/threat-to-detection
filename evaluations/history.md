@@ -36,3 +36,13 @@ Apache HTTP Server 2.4.50 / CVE-2021-42013 / CWE-22 / CAPEC-126を確認した�
 - 出力: [`cve-evaluation.json`](cve-evaluation.json)
 - 出典ハッシュ: 固定fixtureのハッシュと元公開スナップショットのハッシュを`tests/fixtures/evaluation/README.md`、`cve-evaluation.json`、`history.json`に記録
 - 判定: `partial`。公開情報の対応がない枝を推測で補わず、CVE単位の最遠到達段階と枝単位のgapを保存した
+
+## evaluation-visualization-001
+
+- 対象: 評価A [`cve-evaluation.json`](cve-evaluation.json) と評価B [`multidomain-results.json`](multidomain-results.json)
+- 実行: `visualize-evaluations`、固定fixture由来の評価結果を入力、外部ネットワークなし
+- 評価A集計: 母数42、CWE 37、CAPEC 34、ATT&CK 0、Detection Requirement 0
+- 評価B集計: 事前候補6、適用6、blocked 0、unknown 0
+- 出力: [`results/aggregates/`](results/aggregates/) と [`results/figures/`](results/figures/)
+- 図: 累積到達率、段階間到達率、シナリオ別適用可否、blocked/unknown理由の4種類
+- 判定: `pass`。集計値を固定入力から決定的に再生成でき、評価結果にないシナリオを0件として補完しない

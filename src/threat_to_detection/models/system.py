@@ -59,6 +59,7 @@ class AuthenticationCondition(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     required: StrictBool | None = None
+    satisfied: StrictBool | None = None
     method: str | None = None
     principal: str | None = None
     identity_source: str | None = None
@@ -74,6 +75,7 @@ class AuthorizationCondition(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
     required: StrictBool | None = None
+    satisfied: StrictBool | None = None
     roles: tuple[str, ...] = ()
     scopes: tuple[str, ...] = ()
     privilege: str | None = None
@@ -167,6 +169,7 @@ class SystemModel(BaseModel):
             "evidence",
             "rationale",
             "confidence",
+            "required_trust_boundary",
             "required_privilege",
             "privilege_transition",
             "required_authentication_logs",
@@ -291,6 +294,7 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         if isinstance(document.get("evidence"), dict)
         else (),
         "rationale": str(analysis_chain.get("monitoring", "")),
+        "required_trust_boundary": analysis_chain.get("required_trust_boundary"),
         "required_privilege": analysis_chain.get("required_privilege"),
         "privilege_transition": analysis_chain.get("privilege_transition"),
         "required_authentication_logs": _as_sequence(
@@ -321,6 +325,7 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         "metadata": {"name": scenario_id, "description": title},
         "scenario": scenario,
         "assets": [asset],
+        "flows": document.get("flows", ()),
     }
 
 

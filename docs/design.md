@@ -31,6 +31,7 @@
 - Issue #23で選定したCVE集合を対象に、CVE → CWE → CAPEC → ATT&CK → Detection Requirementの
   累積到達率・段階間到達率・最遠到達段階・mapping gapを一括集計する
 - fixtureを使ったCLIのオフライン評価と、決定的なSigma候補・manifestを生成する
+- 評価A/Bの集計結果から、到達率・候補適用可否・不適用理由の静的SVGと集計CSV/JSONを生成する
 
 ### 3.2 今後の拡張候補
 
@@ -152,6 +153,8 @@ flowchart TD
 | `reporters` | 結果の表示形式への変換 | 新しい判断の追加 |
 | `examples` | 利用者向けの入力例 | テストの正解データ |
 | `tests` | 実装の再現可能な検証 | 本番処理の実行 |
+
+評価結果の可視化は`services/visualization.py`と`visualize-evaluations` CLIが担当する。入力JSONの判定結果だけを集計し、評価A/Bの意味を変更する推測や、欠落シナリオの0件補完は行わない。出力は`evaluations/results/aggregates/`の集計データと`evaluations/results/figures/`の決定的なSVGである。
 
 ## 9. 入力モデル
 

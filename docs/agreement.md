@@ -55,6 +55,7 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 - 入口ごとに「弱点または挙動 → 悪用・攻撃者行動 → 監視対象 → 必要ログ → 利用可能ログとの差分」を分析する
 - 複数シナリオを横断した分岐、経路脱落、ログ充足率、ベースラインと生成候補の比較
 - JSON、YAML、JSONL、Markdownによる機械可読・人間可読な記録
+- 評価A/Bの集計CSV/JSONと、到達率・候補適用可否・理由の静的SVG可視化
 
 ### 4.2 対象外
 
@@ -265,6 +266,15 @@ manifestにない利用者ファイルは削除・上書きしない。再実行
 
 履歴には、入力・スナップショット・コード変更による差分として、候補数、完全経路数、ギャップ数、Technique数、Detection Requirement数、Sigma数、根拠の変更を記録する。URL、リリース・バージョン、取得日、SHA、raw hashも機械可読結果だけでなく、人間向けの履歴から追跡できるようにする。最新の機械可読成果物は`output/`に置き、履歴には出典とファイルへの参照を持たせる。
 
+### 9.4 評価結果の可視化
+
+評価A/BのJSONは、評価ロジックを再実行せずに集計・可視化できる入力成果物とする。`visualize-evaluations`は、評価Aの累積・段階間到達率と、評価Bのシナリオ別の`applicable`・`blocked`・`unknown`および理由を、集計CSV/JSONと静的SVGとして出力する。
+
+- 既定の評価Bシナリオが入力に存在しない場合、0件として補完せず入力エラーにする
+- `unknown`は`blocked`や候補削減数へ合算しない
+- 評価結果に含まれる件数と図の値は同じ集計結果から生成する
+- SVGはヘッドレスCIで生成できる静的成果物とし、外部ネットワークや固定値に依存しない
+
 ## 10. Sigma候補の契約
 
 Sigmaは内部バリデータで必須フィールドと型を検証する。外部のpySigmaなどのバリデータは開発環境で使ってよいが、CIや通常の完了条件には必須としない。
@@ -338,10 +348,11 @@ CIは固定fixtureだけで実行し、外部APIや最新データに依存し�
 - `success` / `partial` / `failed`、no-match、`--strict`の終了コード
 - `analysis.json`の`schema_version`と`rule_kind`
 - Sigmaの必須フィールド、決定的ID、YAML出力、パスとmanifest
+- 評価A/B可視化の集計値、4種類のSVG、空入力、欠落・重複シナリオのエラー
 - 正例・負例のJSONL評価
 - snapshotのURL、release、日付、SHA、raw hash
 
-利用者受け入れでは、fixtureを使ったCLI実行、JSON/YAMLの内容確認、ギャップ表示、`rule_kind`、canonical結果、READMEとの手順整合を確認する。
+利用者受け入れでは、fixtureを使ったCLI実行、JSON/YAMLの内容確認、ギャップ表示、`rule_kind`、canonical結果、評価A/B可視化、READMEとの手順整合を確認する。
 
 実データを更新する処理やオンライン通信は、CIとは別の明示的な手動・定期処理として扱う。
 

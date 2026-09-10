@@ -1,0 +1,9 @@
+chart,label,from_stage,to_stage,reached_count,denominator,rate
+cumulative_reachability,CWE,,cwe,37,42,0.8809523809523809
+cumulative_reachability,CAPEC,,capec,34,42,0.8095238095238095
+cumulative_reachability,ATT&CK,,attack,0,42,0.0
+cumulative_reachability,Detection Requirement,,detection,0,42,0.0
+stage_reachability,CVE → CWE,cve,cwe,37,42,0.8809523809523809
+stage_reachability,CWE → CAPEC,cwe,capec,34,37,0.918918918918919
+stage_reachability,CAPEC → ATT&CK,capec,attack,0,34,0.0
+stage_reachability,ATT&CK → Detection Requirement,attack,detection,0,0,

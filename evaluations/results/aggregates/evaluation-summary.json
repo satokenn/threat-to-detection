@@ -1,0 +1,185 @@
+{
+  "evaluation_a": {
+    "population": 42,
+    "cumulative": [
+      {
+        "stage": "cwe",
+        "label": "CWE",
+        "reached_count": 37,
+        "denominator": 42,
+        "rate": 0.8809523809523809
+      },
+      {
+        "stage": "capec",
+        "label": "CAPEC",
+        "reached_count": 34,
+        "denominator": 42,
+        "rate": 0.8095238095238095
+      },
+      {
+        "stage": "attack",
+        "label": "ATT&CK",
+        "reached_count": 0,
+        "denominator": 42,
+        "rate": 0.0
+      },
+      {
+        "stage": "detection",
+        "label": "Detection Requirement",
+        "reached_count": 0,
+        "denominator": 42,
+        "rate": 0.0
+      }
+    ],
+    "transitions": [
+      {
+        "from_stage": "cve",
+        "to_stage": "cwe",
+        "label": "CVE → CWE",
+        "from_count": 42,
+        "reached_count": 37,
+        "denominator": 42,
+        "rate": 0.8809523809523809
+      },
+      {
+        "from_stage": "cwe",
+        "to_stage": "capec",
+        "label": "CWE → CAPEC",
+        "from_count": 37,
+        "reached_count": 34,
+        "denominator": 37,
+        "rate": 0.918918918918919
+      },
+      {
+        "from_stage": "capec",
+        "to_stage": "attack",
+        "label": "CAPEC → ATT&CK",
+        "from_count": 34,
+        "reached_count": 0,
+        "denominator": 34,
+        "rate": 0.0
+      },
+      {
+        "from_stage": "attack",
+        "to_stage": "detection",
+        "label": "ATT&CK → Detection Requirement",
+        "from_count": 0,
+        "reached_count": 0,
+        "denominator": 0,
+        "rate": null
+      }
+    ]
+  },
+  "evaluation_b": {
+    "scenario_ids": [
+      "scenario-01-cve-example-process",
+      "scenario-03-malware-process-execution",
+      "scenario-04-malware-ingress-transfer",
+      "scenario-05-malware-staged-behavior"
+    ],
+    "scenarios": [
+      {
+        "scenario_id": "scenario-01-cve-example-process",
+        "before_candidate_count": 2,
+        "applicable_count": 2,
+        "blocked_count": 0,
+        "unknown_count": 0,
+        "candidate_reduction_rate": 0.0
+      },
+      {
+        "scenario_id": "scenario-03-malware-process-execution",
+        "before_candidate_count": 1,
+        "applicable_count": 1,
+        "blocked_count": 0,
+        "unknown_count": 0,
+        "candidate_reduction_rate": 0.0
+      },
+      {
+        "scenario_id": "scenario-04-malware-ingress-transfer",
+        "before_candidate_count": 1,
+        "applicable_count": 1,
+        "blocked_count": 0,
+        "unknown_count": 0,
+        "candidate_reduction_rate": 0.0
+      },
+      {
+        "scenario_id": "scenario-05-malware-staged-behavior",
+        "before_candidate_count": 2,
+        "applicable_count": 2,
+        "blocked_count": 0,
+        "unknown_count": 0,
+        "candidate_reduction_rate": 0.0
+      }
+    ],
+    "applicability": [
+      {
+        "scenario_id": "scenario-01-cve-example-process",
+        "status": "applicable",
+        "count": 2
+      },
+      {
+        "scenario_id": "scenario-01-cve-example-process",
+        "status": "blocked",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-01-cve-example-process",
+        "status": "unknown",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-03-malware-process-execution",
+        "status": "applicable",
+        "count": 1
+      },
+      {
+        "scenario_id": "scenario-03-malware-process-execution",
+        "status": "blocked",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-03-malware-process-execution",
+        "status": "unknown",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-04-malware-ingress-transfer",
+        "status": "applicable",
+        "count": 1
+      },
+      {
+        "scenario_id": "scenario-04-malware-ingress-transfer",
+        "status": "blocked",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-04-malware-ingress-transfer",
+        "status": "unknown",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-05-malware-staged-behavior",
+        "status": "applicable",
+        "count": 2
+      },
+      {
+        "scenario_id": "scenario-05-malware-staged-behavior",
+        "status": "blocked",
+        "count": 0
+      },
+      {
+        "scenario_id": "scenario-05-malware-staged-behavior",
+        "status": "unknown",
+        "count": 0
+      }
+    ],
+    "reasons": [],
+    "totals": {
+      "before_candidate_count": 6,
+      "applicable_count": 6,
+      "blocked_count": 0,
+      "unknown_count": 0,
+      "candidate_reduction_rate": 0.0
+    }
+  }
+}

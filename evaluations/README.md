@@ -35,6 +35,8 @@ CVE-TEST-0001 → CWE-79 → CAPEC-100 → T1059 → DET0001 → Sigma
 
 各シナリオには、`scenario_type`、`entrypoint`、弱点または挙動から必要ログまでの分析チェーン、利用可能ログ、期待するgap、正例・負例JSONL、ベースラインと生成候補の比較欄があります。`required_logs`はイベント種別と必要フィールドを保持し、coverageはイベント・フィールド単位で計算します。人間向けの集計・考察は[`report.md`](report.md)です。
 
+ATT&CK候補ごとの適用可否・検知可能性の判定順序と出力契約は[`../docs/applicability-algorithm.md`](../docs/applicability-algorithm.md)に記載しています。`candidate_evaluations`には`trace_id`、`technique_id`、`evaluated_conditions`、`evidence`、`provenance`を保存します。
+
 現行fixtureで裏付けられないTechniqueやDetection Strategyは、IDを推測せず`not_evaluated`または`counterexample`としています。カタログ全件のfixture実行状態はindexの`evaluation_status`と`multidomain-results.json`に記録します。実マルウェア、バイナリ、攻撃ペイロードは使用しません。
 
 `analysis.json`の`mode`と`snapshots`には、fixture / cache / online / refreshの取得モード、入力URL、release、固定識別子、取得日、raw SHA-256、正規化・除外条件が記録されます。`manifest.json`ではシナリオと各スナップショットから`analysis.json`およびSigma生成物への関係を確認できます。Apache HTTP Server 2.4.50の未対応経路は、fixtureへ推測の対応を追加せずcounterexampleとして履歴に残します。
@@ -70,6 +72,34 @@ PYTHONPATH=src python -m threat_to_detection.cli evaluate-cves \
 
 `evaluate-cves`の既定入力は[`tests/fixtures/evaluation/`](../tests/fixtures/evaluation/)の
 固定スナップショットです。最新データで再評価する場合だけ`--online`を指定します。
+
+## 評価A/Bの可視化
+
+評価A（CVEマッピング）と評価B（脅威モデル条件）の結果から、集計CSV/JSONと4種類の静的SVGを再生成できます。
+
+```bash
+PYTHONPATH=src python -m threat_to_detection.cli visualize-evaluations \
+  --evaluation-a evaluations/cve-evaluation.json \
+  --evaluation-b evaluations/multidomain-results.json \
+  --output-dir evaluations/results
+```
+
+出力先には、`aggregates/evaluation-summary.json`、評価A/Bの集計CSV、次の図が生成されます。
+
+```text
+evaluations/results/
+├── aggregates/
+│   ├── evaluation-summary.json
+│   ├── evaluation_a_summary.csv
+│   └── evaluation_b_summary.csv
+└── figures/
+    ├── cumulative_reachability.svg
+    ├── stage_reachability.svg
+    ├── threat_model_applicability.svg
+    └── applicability_reasons.svg
+```
+
+評価Bは`candidate_evaluations`の判定を集計し、`unknown`を`blocked`や候補削減数へ合算しません。既定の4シナリオが入力に存在しない場合は、0件として黙って補完せずエラーにします。入力が明示的に空の場合だけ、空の集計を生成します。
 
 ## 実データの反例
 
