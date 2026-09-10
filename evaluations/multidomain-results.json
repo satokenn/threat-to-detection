@@ -6,30 +6,38 @@
     "scenario_index": "evaluations/scenarios/index.yaml"
   },
   "summary": {
-    "scenario_count": 10,
+    "scenario_count": 14,
     "by_pipeline_status": {
       "partial": 3,
-      "success": 7
+      "success": 11
     },
     "by_analysis_outcome": {
-      "matched": 3,
+      "matched": 7,
       "no_match": 6,
       "control": 1
     },
-    "trace_paths": 3,
+    "trace_paths": 7,
     "mapping_gaps": 4,
-    "sigma_rules": 3,
-    "coverage_ratio": 0.193571,
-    "before_candidate_count": 6,
+    "sigma_rules": 7,
+    "coverage_ratio": 0.233503,
+    "before_candidate_count": 10,
     "applicable_count": 6,
-    "blocked_count": 0,
-    "unknown_count": 0,
-    "candidate_reduction_rate": 0.0,
-    "blocked_reasons": {},
-    "unknown_reasons": {},
+    "blocked_count": 3,
+    "unknown_count": 1,
+    "candidate_reduction_rate": 0.3,
+    "blocked_reasons": {
+      "communication_path": 1,
+      "privilege": 1,
+      "trust_boundary": 1
+    },
+    "unknown_reasons": {
+      "authentication": 1,
+      "authorization": 1,
+      "trust_boundary": 1
+    },
     "detection_feasibility": {
       "detectable": 0,
-      "partial": 3,
+      "partial": 7,
       "unavailable": 0,
       "unknown": 3
     }
@@ -4866,6 +4874,2490 @@
         "status": "partial",
         "required": 4,
         "missing": 3
+      },
+      "errors": []
+    },
+    {
+      "scenario_id": "scenario-11-threat-model-blocked-no-flow",
+      "title": "脅威モデル評価: 通信経路がない候補をblockedにする",
+      "domain": "malware",
+      "catalog_status": "threat_model_fixture",
+      "pipeline_status": "success",
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "before_candidate_count": 1,
+      "applicable_count": 0,
+      "blocked_count": 1,
+      "unknown_count": 0,
+      "candidate_reduction_rate": 1.0,
+      "blocked_reasons": {
+        "communication_path": 1
+      },
+      "unknown_reasons": {},
+      "detection_feasibility": {
+        "detectable": 0,
+        "partial": 1,
+        "unavailable": 0,
+        "unknown": 0
+      },
+      "candidate_evaluations": [
+        {
+          "trace_id": "scenario-11-threat-model-blocked-no-flow::::T1059:DET0001",
+          "before_candidate": true,
+          "asset": "scenario-11-threat-model-blocked-no-flow",
+          "technique_id": "T1059",
+          "scenario_type": "malware",
+          "entrypoint_type": "malware_behavior",
+          "entrypoint": {
+            "type": "malware_behavior",
+            "id": null,
+            "name": null,
+            "description": "",
+            "behaviors": [],
+            "references": [],
+            "source": "safe_synthetic_threat_model_fixture",
+            "identifiers": {
+              "behavior": "abstract_process_execution",
+              "attack_techniques": [
+                "T1059"
+              ]
+            }
+          },
+          "weakness_ids": [],
+          "attack_pattern_ids": [],
+          "attacker_actions": [
+            "T1059を候補として評価する。"
+          ],
+          "technique_ids": [
+            "T1059"
+          ],
+          "detection_strategy_ids": [
+            "DET0001"
+          ],
+          "analytic_ids": [
+            "AN0001"
+          ],
+          "required_telemetry": [
+            "process_creation"
+          ],
+          "available_telemetry": [
+            "process_creation"
+          ],
+          "coverage": {
+            "required": [
+              "process_creation"
+            ],
+            "available": [
+              "process_creation"
+            ],
+            "covered": [
+              "process_creation"
+            ],
+            "missing": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "coverage_ratio": 0.3333333333333333,
+            "status": "partial",
+            "required_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": [
+                  "event.id",
+                  "process.command.line"
+                ]
+              }
+            ],
+            "available_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": []
+              }
+            ],
+            "required_events": [
+              "process_creation"
+            ],
+            "available_events": [
+              "process_creation"
+            ],
+            "covered_events": [
+              "process_creation"
+            ],
+            "missing_events": [],
+            "required_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "available_fields": [],
+            "covered_fields": [],
+            "missing_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "required_authentication_logs": []
+          },
+          "attack_applicability": {
+            "status": "blocked",
+            "reasons": [
+              "Blocked by: communication_path."
+            ],
+            "evidence": [],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "blocked",
+                "reason": "No explicit communication flow reaches the target asset.",
+                "evidence": [],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-11-threat-model-blocked-no-flow",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-11-threat-model-blocked-no-flow",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reason": "communication_path",
+            "blocked_reasons": [
+              "communication_path"
+            ],
+            "unknown_reason": null,
+            "unknown_reasons": [],
+            "trace_id": "scenario-11-threat-model-blocked-no-flow::::T1059:DET0001",
+            "flow_evaluations": []
+          },
+          "detection_feasibility": {
+            "status": "partial",
+            "reasons": [
+              "Required fields are missing: process_creation.event.id, process_creation.process.command.line."
+            ],
+            "evidence": [
+              {
+                "kind": "coverage",
+                "field": "coverage_ratio",
+                "value": 0.3333333333333333
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-11-threat-model-blocked-no-flow",
+                "field": "logs",
+                "value": [
+                  "process_creation"
+                ]
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "required_telemetry",
+                "status": "available"
+              },
+              {
+                "condition": "required_fields",
+                "status": "missing"
+              },
+              {
+                "condition": "authentication_logs",
+                "status": "available"
+              },
+              {
+                "condition": "asset_logs",
+                "status": "available"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-11-threat-model-blocked-no-flow",
+                "field": "logs",
+                "rationale": "Declared logs are used as the availability evidence."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-11-threat-model-blocked-no-flow::::T1059:DET0001",
+                "field": "coverage",
+                "rationale": "Event and field statuses are derived from required and available telemetry."
+              }
+            ]
+          },
+          "trust_zone": null,
+          "privilege_level": "user",
+          "trust_boundaries": [],
+          "authentication_conditions": [],
+          "authorization_conditions": [],
+          "flow_security": [],
+          "required_privilege": "user",
+          "required_trust_boundary": null,
+          "privilege_transition": null,
+          "required_authentication_logs": [],
+          "evidence": [
+            "T1059",
+            "DET0001"
+          ],
+          "rationale": "Process Creationの抽象イベントを参照する。",
+          "confidence": "unknown",
+          "mapping_gaps": []
+        }
+      ],
+      "mapping_gaps": 0,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.333333,
+        "status": "partial",
+        "required": 3,
+        "missing": 2
+      },
+      "errors": []
+    },
+    {
+      "scenario_id": "scenario-12-threat-model-blocked-boundary",
+      "title": "脅威モデル評価: 信頼境界が一致しない候補をblockedにする",
+      "domain": "malware",
+      "catalog_status": "threat_model_fixture",
+      "pipeline_status": "success",
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "before_candidate_count": 1,
+      "applicable_count": 0,
+      "blocked_count": 1,
+      "unknown_count": 0,
+      "candidate_reduction_rate": 1.0,
+      "blocked_reasons": {
+        "trust_boundary": 1
+      },
+      "unknown_reasons": {},
+      "detection_feasibility": {
+        "detectable": 0,
+        "partial": 1,
+        "unavailable": 0,
+        "unknown": 0
+      },
+      "candidate_evaluations": [
+        {
+          "trace_id": "scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+          "before_candidate": true,
+          "asset": "scenario-12-threat-model-blocked-boundary",
+          "technique_id": "T1059",
+          "scenario_type": "malware",
+          "entrypoint_type": "malware_behavior",
+          "entrypoint": {
+            "type": "malware_behavior",
+            "id": null,
+            "name": null,
+            "description": "",
+            "behaviors": [],
+            "references": [],
+            "source": "safe_synthetic_threat_model_fixture",
+            "identifiers": {
+              "behavior": "abstract_process_execution",
+              "attack_techniques": [
+                "T1059"
+              ]
+            }
+          },
+          "weakness_ids": [],
+          "attack_pattern_ids": [],
+          "attacker_actions": [
+            "T1059を候補として評価する。"
+          ],
+          "technique_ids": [
+            "T1059"
+          ],
+          "detection_strategy_ids": [
+            "DET0001"
+          ],
+          "analytic_ids": [
+            "AN0001"
+          ],
+          "required_telemetry": [
+            "process_creation"
+          ],
+          "available_telemetry": [
+            "process_creation"
+          ],
+          "coverage": {
+            "required": [
+              "process_creation"
+            ],
+            "available": [
+              "process_creation"
+            ],
+            "covered": [
+              "process_creation"
+            ],
+            "missing": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "coverage_ratio": 0.3333333333333333,
+            "status": "partial",
+            "required_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": [
+                  "event.id",
+                  "process.command.line"
+                ]
+              }
+            ],
+            "available_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": []
+              }
+            ],
+            "required_events": [
+              "process_creation"
+            ],
+            "available_events": [
+              "process_creation"
+            ],
+            "covered_events": [
+              "process_creation"
+            ],
+            "missing_events": [],
+            "required_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "available_fields": [],
+            "covered_fields": [],
+            "missing_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "required_authentication_logs": []
+          },
+          "attack_applicability": {
+            "status": "blocked",
+            "reasons": [
+              "Blocked by: trust_boundary."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->scenario-12-threat-model-blocked-boundary",
+                "field": "destination",
+                "value": "scenario-12-threat-model-blocked-boundary"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-12-threat-model-blocked-boundary",
+                "field": "trust_boundary",
+                "value": "internet-to-dmz"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-12-threat-model-blocked-boundary",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-12-threat-model-blocked-boundary",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-12-threat-model-blocked-boundary",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-12-threat-model-blocked-boundary",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow reaches the target asset.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "destination",
+                    "value": "scenario-12-threat-model-blocked-boundary"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "blocked",
+                "reason": "The declared trust boundary does not satisfy the required boundary.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "trust_boundary",
+                    "value": "internet-to-dmz"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "Authentication is explicitly not required.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "Authorization is explicitly not required.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "Target asset privilege meets the required privilege.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-12-threat-model-blocked-boundary",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reason": "trust_boundary",
+            "blocked_reasons": [
+              "trust_boundary"
+            ],
+            "unknown_reason": null,
+            "unknown_reasons": [],
+            "trace_id": "scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+            "flow_evaluations": [
+              {
+                "flow_id": "flow-1:internet->scenario-12-threat-model-blocked-boundary",
+                "from": "internet",
+                "to": "scenario-12-threat-model-blocked-boundary",
+                "status": "blocked",
+                "reasons": [
+                  "Blocked by: trust_boundary."
+                ],
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "destination",
+                    "value": "scenario-12-threat-model-blocked-boundary"
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "trust_boundary",
+                    "value": "internet-to-dmz"
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_level",
+                    "value": "user"
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "evaluated_conditions": [
+                  {
+                    "condition": "reachability",
+                    "status": "satisfied",
+                    "reason": "An explicit flow reaches the target asset.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "destination",
+                        "value": "scenario-12-threat-model-blocked-boundary"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "flows",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "trust_boundary",
+                    "status": "blocked",
+                    "reason": "The declared trust boundary does not satisfy the required boundary.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "trust_boundary",
+                        "value": "internet-to-dmz"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "trust_boundary",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authentication",
+                    "status": "satisfied",
+                    "reason": "Authentication is explicitly not required.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "authentication",
+                        "value": {
+                          "required": false,
+                          "satisfied": null,
+                          "method": null,
+                          "principal": null,
+                          "identity_source": null
+                        }
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "authentication",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authorization",
+                    "status": "satisfied",
+                    "reason": "Authorization is explicitly not required.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "authorization",
+                        "value": {
+                          "required": false,
+                          "satisfied": null,
+                          "roles": [],
+                          "scopes": [],
+                          "privilege": null
+                        }
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                        "field": "authorization",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege",
+                    "status": "satisfied",
+                    "reason": "Target asset privilege meets the required privilege.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-12-threat-model-blocked-boundary",
+                        "field": "privilege_level",
+                        "value": "user"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "asset:scenario-12-threat-model-blocked-boundary",
+                        "field": "privilege_level",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      },
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                        "field": "required_privilege",
+                        "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege_transition",
+                    "status": "satisfied",
+                    "reason": "No privilege transition is required by the scenario.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-12-threat-model-blocked-boundary",
+                        "field": "privilege_transition",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                        "field": "privilege_transition",
+                        "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                      },
+                      {
+                        "source_type": "derived",
+                        "source_id": "trace:scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+                        "field": "privilege_transition",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-12-threat-model-blocked-boundary",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-12-threat-model-blocked-boundary",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ],
+                "blocked_reasons": [
+                  "trust_boundary"
+                ],
+                "unknown_reasons": []
+              }
+            ]
+          },
+          "detection_feasibility": {
+            "status": "partial",
+            "reasons": [
+              "Required fields are missing: process_creation.event.id, process_creation.process.command.line."
+            ],
+            "evidence": [
+              {
+                "kind": "coverage",
+                "field": "coverage_ratio",
+                "value": 0.3333333333333333
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-12-threat-model-blocked-boundary",
+                "field": "logs",
+                "value": [
+                  "process_creation"
+                ]
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "required_telemetry",
+                "status": "available"
+              },
+              {
+                "condition": "required_fields",
+                "status": "missing"
+              },
+              {
+                "condition": "authentication_logs",
+                "status": "available"
+              },
+              {
+                "condition": "asset_logs",
+                "status": "available"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-12-threat-model-blocked-boundary",
+                "field": "logs",
+                "rationale": "Declared logs are used as the availability evidence."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-12-threat-model-blocked-boundary::::T1059:DET0001",
+                "field": "coverage",
+                "rationale": "Event and field statuses are derived from required and available telemetry."
+              }
+            ]
+          },
+          "trust_zone": null,
+          "privilege_level": "user",
+          "trust_boundaries": [
+            "internet-to-dmz"
+          ],
+          "authentication_conditions": [
+            {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          ],
+          "authorization_conditions": [
+            {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          ],
+          "flow_security": [
+            {
+              "from": "internet",
+              "to": "scenario-12-threat-model-blocked-boundary",
+              "protocol": "https",
+              "trust_boundary": "internet-to-dmz",
+              "authentication": {
+                "required": false,
+                "satisfied": null,
+                "method": null,
+                "principal": null,
+                "identity_source": null
+              },
+              "authorization": {
+                "required": false,
+                "satisfied": null,
+                "roles": [],
+                "scopes": [],
+                "privilege": null
+              }
+            }
+          ],
+          "required_privilege": "user",
+          "required_trust_boundary": "dmz-to-internal",
+          "privilege_transition": null,
+          "required_authentication_logs": [],
+          "evidence": [
+            "T1059",
+            "DET0001"
+          ],
+          "rationale": "Process Creationの抽象イベントを参照する。",
+          "confidence": "unknown",
+          "mapping_gaps": []
+        }
+      ],
+      "mapping_gaps": 0,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.333333,
+        "status": "partial",
+        "required": 3,
+        "missing": 2
+      },
+      "errors": []
+    },
+    {
+      "scenario_id": "scenario-13-threat-model-blocked-privilege",
+      "title": "脅威モデル評価: 必要権限を満たさない候補をblockedにする",
+      "domain": "malware",
+      "catalog_status": "threat_model_fixture",
+      "pipeline_status": "success",
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "before_candidate_count": 1,
+      "applicable_count": 0,
+      "blocked_count": 1,
+      "unknown_count": 0,
+      "candidate_reduction_rate": 1.0,
+      "blocked_reasons": {
+        "privilege": 1
+      },
+      "unknown_reasons": {},
+      "detection_feasibility": {
+        "detectable": 0,
+        "partial": 1,
+        "unavailable": 0,
+        "unknown": 0
+      },
+      "candidate_evaluations": [
+        {
+          "trace_id": "scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+          "before_candidate": true,
+          "asset": "scenario-13-threat-model-blocked-privilege",
+          "technique_id": "T1059",
+          "scenario_type": "malware",
+          "entrypoint_type": "malware_behavior",
+          "entrypoint": {
+            "type": "malware_behavior",
+            "id": null,
+            "name": null,
+            "description": "",
+            "behaviors": [],
+            "references": [],
+            "source": "safe_synthetic_threat_model_fixture",
+            "identifiers": {
+              "behavior": "abstract_privileged_process_execution",
+              "attack_techniques": [
+                "T1059"
+              ]
+            }
+          },
+          "weakness_ids": [],
+          "attack_pattern_ids": [],
+          "attacker_actions": [
+            "T1059を候補として評価する。"
+          ],
+          "technique_ids": [
+            "T1059"
+          ],
+          "detection_strategy_ids": [
+            "DET0001"
+          ],
+          "analytic_ids": [
+            "AN0001"
+          ],
+          "required_telemetry": [
+            "process_creation"
+          ],
+          "available_telemetry": [
+            "process_creation"
+          ],
+          "coverage": {
+            "required": [
+              "process_creation"
+            ],
+            "available": [
+              "process_creation"
+            ],
+            "covered": [
+              "process_creation"
+            ],
+            "missing": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "coverage_ratio": 0.3333333333333333,
+            "status": "partial",
+            "required_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": [
+                  "event.id",
+                  "process.command.line"
+                ]
+              }
+            ],
+            "available_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": []
+              }
+            ],
+            "required_events": [
+              "process_creation"
+            ],
+            "available_events": [
+              "process_creation"
+            ],
+            "covered_events": [
+              "process_creation"
+            ],
+            "missing_events": [],
+            "required_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "available_fields": [],
+            "covered_fields": [],
+            "missing_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "required_authentication_logs": []
+          },
+          "attack_applicability": {
+            "status": "blocked",
+            "reasons": [
+              "Blocked by: privilege."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->scenario-13-threat-model-blocked-privilege",
+                "field": "destination",
+                "value": "scenario-13-threat-model-blocked-privilege"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-13-threat-model-blocked-privilege",
+                "field": "trust_boundary",
+                "value": "internet-to-workload"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-13-threat-model-blocked-privilege",
+                "field": "authentication",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "method": null,
+                  "principal": null,
+                  "identity_source": null
+                }
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-13-threat-model-blocked-privilege",
+                "field": "authorization",
+                "value": {
+                  "required": false,
+                  "satisfied": null,
+                  "roles": [],
+                  "scopes": [],
+                  "privilege": null
+                }
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-13-threat-model-blocked-privilege",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-13-threat-model-blocked-privilege",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow reaches the target asset.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "destination",
+                    "value": "scenario-13-threat-model-blocked-privilege"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "satisfied",
+                "reason": "The trust boundary is explicitly declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "trust_boundary",
+                    "value": "internet-to-workload"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "satisfied",
+                "reason": "Authentication is explicitly not required.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "satisfied",
+                "reason": "Authorization is explicitly not required.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "blocked",
+                "reason": "Target asset privilege is below the required privilege.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-13-threat-model-blocked-privilege",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reason": "privilege",
+            "blocked_reasons": [
+              "privilege"
+            ],
+            "unknown_reason": null,
+            "unknown_reasons": [],
+            "trace_id": "scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+            "flow_evaluations": [
+              {
+                "flow_id": "flow-1:internet->scenario-13-threat-model-blocked-privilege",
+                "from": "internet",
+                "to": "scenario-13-threat-model-blocked-privilege",
+                "status": "blocked",
+                "reasons": [
+                  "Blocked by: privilege."
+                ],
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "destination",
+                    "value": "scenario-13-threat-model-blocked-privilege"
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "trust_boundary",
+                    "value": "internet-to-workload"
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authentication",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "method": null,
+                      "principal": null,
+                      "identity_source": null
+                    }
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authorization",
+                    "value": {
+                      "required": false,
+                      "satisfied": null,
+                      "roles": [],
+                      "scopes": [],
+                      "privilege": null
+                    }
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_level",
+                    "value": "user"
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "evaluated_conditions": [
+                  {
+                    "condition": "reachability",
+                    "status": "satisfied",
+                    "reason": "An explicit flow reaches the target asset.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "destination",
+                        "value": "scenario-13-threat-model-blocked-privilege"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "flows",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "trust_boundary",
+                    "status": "satisfied",
+                    "reason": "The trust boundary is explicitly declared.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "trust_boundary",
+                        "value": "internet-to-workload"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "trust_boundary",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authentication",
+                    "status": "satisfied",
+                    "reason": "Authentication is explicitly not required.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "authentication",
+                        "value": {
+                          "required": false,
+                          "satisfied": null,
+                          "method": null,
+                          "principal": null,
+                          "identity_source": null
+                        }
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "authentication",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authorization",
+                    "status": "satisfied",
+                    "reason": "Authorization is explicitly not required.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "authorization",
+                        "value": {
+                          "required": false,
+                          "satisfied": null,
+                          "roles": [],
+                          "scopes": [],
+                          "privilege": null
+                        }
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                        "field": "authorization",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege",
+                    "status": "blocked",
+                    "reason": "Target asset privilege is below the required privilege.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-13-threat-model-blocked-privilege",
+                        "field": "privilege_level",
+                        "value": "user"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "asset:scenario-13-threat-model-blocked-privilege",
+                        "field": "privilege_level",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      },
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                        "field": "required_privilege",
+                        "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege_transition",
+                    "status": "satisfied",
+                    "reason": "No privilege transition is required by the scenario.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-13-threat-model-blocked-privilege",
+                        "field": "privilege_transition",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                        "field": "privilege_transition",
+                        "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                      },
+                      {
+                        "source_type": "derived",
+                        "source_id": "trace:scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+                        "field": "privilege_transition",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-13-threat-model-blocked-privilege",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-13-threat-model-blocked-privilege",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ],
+                "blocked_reasons": [
+                  "privilege"
+                ],
+                "unknown_reasons": []
+              }
+            ]
+          },
+          "detection_feasibility": {
+            "status": "partial",
+            "reasons": [
+              "Required fields are missing: process_creation.event.id, process_creation.process.command.line."
+            ],
+            "evidence": [
+              {
+                "kind": "coverage",
+                "field": "coverage_ratio",
+                "value": 0.3333333333333333
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-13-threat-model-blocked-privilege",
+                "field": "logs",
+                "value": [
+                  "process_creation"
+                ]
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "required_telemetry",
+                "status": "available"
+              },
+              {
+                "condition": "required_fields",
+                "status": "missing"
+              },
+              {
+                "condition": "authentication_logs",
+                "status": "available"
+              },
+              {
+                "condition": "asset_logs",
+                "status": "available"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-13-threat-model-blocked-privilege",
+                "field": "logs",
+                "rationale": "Declared logs are used as the availability evidence."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-13-threat-model-blocked-privilege::::T1059:DET0001",
+                "field": "coverage",
+                "rationale": "Event and field statuses are derived from required and available telemetry."
+              }
+            ]
+          },
+          "trust_zone": null,
+          "privilege_level": "user",
+          "trust_boundaries": [
+            "internet-to-workload"
+          ],
+          "authentication_conditions": [
+            {
+              "required": false,
+              "satisfied": null,
+              "method": null,
+              "principal": null,
+              "identity_source": null
+            }
+          ],
+          "authorization_conditions": [
+            {
+              "required": false,
+              "satisfied": null,
+              "roles": [],
+              "scopes": [],
+              "privilege": null
+            }
+          ],
+          "flow_security": [
+            {
+              "from": "internet",
+              "to": "scenario-13-threat-model-blocked-privilege",
+              "protocol": "https",
+              "trust_boundary": "internet-to-workload",
+              "authentication": {
+                "required": false,
+                "satisfied": null,
+                "method": null,
+                "principal": null,
+                "identity_source": null
+              },
+              "authorization": {
+                "required": false,
+                "satisfied": null,
+                "roles": [],
+                "scopes": [],
+                "privilege": null
+              }
+            }
+          ],
+          "required_privilege": "admin",
+          "required_trust_boundary": null,
+          "privilege_transition": null,
+          "required_authentication_logs": [],
+          "evidence": [
+            "T1059",
+            "DET0001"
+          ],
+          "rationale": "Process Creationの抽象イベントを参照する。",
+          "confidence": "unknown",
+          "mapping_gaps": []
+        }
+      ],
+      "mapping_gaps": 0,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.333333,
+        "status": "partial",
+        "required": 3,
+        "missing": 2
+      },
+      "errors": []
+    },
+    {
+      "scenario_id": "scenario-14-threat-model-unknown-access",
+      "title": "脅威モデル評価: 認証・認可・境界の未指定をunknownにする",
+      "domain": "malware",
+      "catalog_status": "threat_model_fixture",
+      "pipeline_status": "success",
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "before_candidate_count": 1,
+      "applicable_count": 0,
+      "blocked_count": 0,
+      "unknown_count": 1,
+      "candidate_reduction_rate": 0.0,
+      "blocked_reasons": {},
+      "unknown_reasons": {
+        "authentication": 1,
+        "authorization": 1,
+        "trust_boundary": 1
+      },
+      "detection_feasibility": {
+        "detectable": 0,
+        "partial": 1,
+        "unavailable": 0,
+        "unknown": 0
+      },
+      "candidate_evaluations": [
+        {
+          "trace_id": "scenario-14-threat-model-unknown-access::::T1059:DET0001",
+          "before_candidate": true,
+          "asset": "scenario-14-threat-model-unknown-access",
+          "technique_id": "T1059",
+          "scenario_type": "malware",
+          "entrypoint_type": "malware_behavior",
+          "entrypoint": {
+            "type": "malware_behavior",
+            "id": null,
+            "name": null,
+            "description": "",
+            "behaviors": [],
+            "references": [],
+            "source": "safe_synthetic_threat_model_fixture",
+            "identifiers": {
+              "behavior": "abstract_process_execution",
+              "attack_techniques": [
+                "T1059"
+              ]
+            }
+          },
+          "weakness_ids": [],
+          "attack_pattern_ids": [],
+          "attacker_actions": [
+            "T1059を候補として評価する。"
+          ],
+          "technique_ids": [
+            "T1059"
+          ],
+          "detection_strategy_ids": [
+            "DET0001"
+          ],
+          "analytic_ids": [
+            "AN0001"
+          ],
+          "required_telemetry": [
+            "process_creation"
+          ],
+          "available_telemetry": [
+            "process_creation"
+          ],
+          "coverage": {
+            "required": [
+              "process_creation"
+            ],
+            "available": [
+              "process_creation"
+            ],
+            "covered": [
+              "process_creation"
+            ],
+            "missing": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "coverage_ratio": 0.3333333333333333,
+            "status": "partial",
+            "required_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": [
+                  "event.id",
+                  "process.command.line"
+                ]
+              }
+            ],
+            "available_logs": [
+              {
+                "event_type": "process_creation",
+                "fields": []
+              }
+            ],
+            "required_events": [
+              "process_creation"
+            ],
+            "available_events": [
+              "process_creation"
+            ],
+            "covered_events": [
+              "process_creation"
+            ],
+            "missing_events": [],
+            "required_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "available_fields": [],
+            "covered_fields": [],
+            "missing_fields": [
+              "process_creation.event.id",
+              "process_creation.process.command.line"
+            ],
+            "required_authentication_logs": []
+          },
+          "attack_applicability": {
+            "status": "unknown",
+            "reasons": [
+              "Unknown because: trust_boundary, authentication, authorization."
+            ],
+            "evidence": [
+              {
+                "kind": "flow",
+                "id": "internet->scenario-14-threat-model-unknown-access",
+                "field": "destination",
+                "value": "scenario-14-threat-model-unknown-access"
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-14-threat-model-unknown-access",
+                "field": "trust_boundary",
+                "value": null
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-14-threat-model-unknown-access",
+                "field": "authentication",
+                "value": null
+              },
+              {
+                "kind": "flow",
+                "id": "internet->scenario-14-threat-model-unknown-access",
+                "field": "authorization",
+                "value": null
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-14-threat-model-unknown-access",
+                "field": "privilege_level",
+                "value": "user"
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-14-threat-model-unknown-access",
+                "field": "privilege_transition",
+                "value": null
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "reachability",
+                "status": "satisfied",
+                "reason": "An explicit flow reaches the target asset.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "destination",
+                    "value": "scenario-14-threat-model-unknown-access"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "trust_boundary",
+                "status": "unknown",
+                "reason": "Trust boundary is not declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "trust_boundary",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authentication",
+                "status": "unknown",
+                "reason": "Authentication condition is not declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "authentication",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "authorization",
+                "status": "unknown",
+                "reason": "Authorization condition is not declared.",
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "authorization",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege",
+                "status": "satisfied",
+                "reason": "Target asset privilege meets the required privilege.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-14-threat-model-unknown-access",
+                    "field": "privilege_level",
+                    "value": "user"
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-14-threat-model-unknown-access",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  }
+                ]
+              },
+              {
+                "condition": "privilege_transition",
+                "status": "satisfied",
+                "reason": "No privilege transition is required by the scenario.",
+                "evidence": [
+                  {
+                    "kind": "asset",
+                    "id": "scenario-14-threat-model-unknown-access",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-14-threat-model-unknown-access::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ]
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                "field": "flows",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                "field": "trust_boundary",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                "field": "authentication",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                "field": "authorization",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-14-threat-model-unknown-access",
+                "field": "privilege_level",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                "field": "required_privilege",
+                "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "scenario_author",
+                "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                "field": "privilege_transition",
+                "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-14-threat-model-unknown-access::::T1059:DET0001",
+                "field": "privilege_transition",
+                "rationale": "The value is explicitly declared in the SystemModel."
+              }
+            ],
+            "blocked_reason": null,
+            "blocked_reasons": [],
+            "unknown_reason": "trust_boundary",
+            "unknown_reasons": [
+              "trust_boundary",
+              "authentication",
+              "authorization"
+            ],
+            "trace_id": "scenario-14-threat-model-unknown-access::::T1059:DET0001",
+            "flow_evaluations": [
+              {
+                "flow_id": "flow-1:internet->scenario-14-threat-model-unknown-access",
+                "from": "internet",
+                "to": "scenario-14-threat-model-unknown-access",
+                "status": "unknown",
+                "reasons": [
+                  "Unknown because: trust_boundary, authentication, authorization."
+                ],
+                "evidence": [
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "destination",
+                    "value": "scenario-14-threat-model-unknown-access"
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "trust_boundary",
+                    "value": null
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "authentication",
+                    "value": null
+                  },
+                  {
+                    "kind": "flow",
+                    "id": "internet->scenario-14-threat-model-unknown-access",
+                    "field": "authorization",
+                    "value": null
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-14-threat-model-unknown-access",
+                    "field": "privilege_level",
+                    "value": "user"
+                  },
+                  {
+                    "kind": "asset",
+                    "id": "scenario-14-threat-model-unknown-access",
+                    "field": "privilege_transition",
+                    "value": null
+                  }
+                ],
+                "evaluated_conditions": [
+                  {
+                    "condition": "reachability",
+                    "status": "satisfied",
+                    "reason": "An explicit flow reaches the target asset.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-14-threat-model-unknown-access",
+                        "field": "destination",
+                        "value": "scenario-14-threat-model-unknown-access"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                        "field": "flows",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "trust_boundary",
+                    "status": "unknown",
+                    "reason": "Trust boundary is not declared.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-14-threat-model-unknown-access",
+                        "field": "trust_boundary",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                        "field": "trust_boundary",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authentication",
+                    "status": "unknown",
+                    "reason": "Authentication condition is not declared.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-14-threat-model-unknown-access",
+                        "field": "authentication",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                        "field": "authentication",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "authorization",
+                    "status": "unknown",
+                    "reason": "Authorization condition is not declared.",
+                    "evidence": [
+                      {
+                        "kind": "flow",
+                        "id": "internet->scenario-14-threat-model-unknown-access",
+                        "field": "authorization",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                        "field": "authorization",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege",
+                    "status": "satisfied",
+                    "reason": "Target asset privilege meets the required privilege.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-14-threat-model-unknown-access",
+                        "field": "privilege_level",
+                        "value": "user"
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "system_model",
+                        "source_id": "asset:scenario-14-threat-model-unknown-access",
+                        "field": "privilege_level",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      },
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                        "field": "required_privilege",
+                        "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                      }
+                    ]
+                  },
+                  {
+                    "condition": "privilege_transition",
+                    "status": "satisfied",
+                    "reason": "No privilege transition is required by the scenario.",
+                    "evidence": [
+                      {
+                        "kind": "asset",
+                        "id": "scenario-14-threat-model-unknown-access",
+                        "field": "privilege_transition",
+                        "value": null
+                      }
+                    ],
+                    "provenance": [
+                      {
+                        "source_type": "scenario_author",
+                        "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                        "field": "privilege_transition",
+                        "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                      },
+                      {
+                        "source_type": "derived",
+                        "source_id": "trace:scenario-14-threat-model-unknown-access::::T1059:DET0001",
+                        "field": "privilege_transition",
+                        "rationale": "The value is explicitly declared in the SystemModel."
+                      }
+                    ]
+                  }
+                ],
+                "provenance": [
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "flows",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "trust_boundary",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "authentication",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "flow:internet->scenario-14-threat-model-unknown-access",
+                    "field": "authorization",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "system_model",
+                    "source_id": "asset:scenario-14-threat-model-unknown-access",
+                    "field": "privilege_level",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                    "field": "required_privilege",
+                    "rationale": "The required privilege is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "scenario_author",
+                    "source_id": "scenario:scenario-14-threat-model-unknown-access",
+                    "field": "privilege_transition",
+                    "rationale": "The required privilege transition is explicitly declared by the evaluation scenario."
+                  },
+                  {
+                    "source_type": "derived",
+                    "source_id": "trace:scenario-14-threat-model-unknown-access::::T1059:DET0001",
+                    "field": "privilege_transition",
+                    "rationale": "The value is explicitly declared in the SystemModel."
+                  }
+                ],
+                "blocked_reasons": [],
+                "unknown_reasons": [
+                  "trust_boundary",
+                  "authentication",
+                  "authorization"
+                ]
+              }
+            ]
+          },
+          "detection_feasibility": {
+            "status": "partial",
+            "reasons": [
+              "Required fields are missing: process_creation.event.id, process_creation.process.command.line."
+            ],
+            "evidence": [
+              {
+                "kind": "coverage",
+                "field": "coverage_ratio",
+                "value": 0.3333333333333333
+              },
+              {
+                "kind": "asset",
+                "id": "scenario-14-threat-model-unknown-access",
+                "field": "logs",
+                "value": [
+                  "process_creation"
+                ]
+              }
+            ],
+            "evaluated_conditions": [
+              {
+                "condition": "required_telemetry",
+                "status": "available"
+              },
+              {
+                "condition": "required_fields",
+                "status": "missing"
+              },
+              {
+                "condition": "authentication_logs",
+                "status": "available"
+              },
+              {
+                "condition": "asset_logs",
+                "status": "available"
+              }
+            ],
+            "provenance": [
+              {
+                "source_type": "system_model",
+                "source_id": "asset:scenario-14-threat-model-unknown-access",
+                "field": "logs",
+                "rationale": "Declared logs are used as the availability evidence."
+              },
+              {
+                "source_type": "derived",
+                "source_id": "trace:scenario-14-threat-model-unknown-access::::T1059:DET0001",
+                "field": "coverage",
+                "rationale": "Event and field statuses are derived from required and available telemetry."
+              }
+            ]
+          },
+          "trust_zone": null,
+          "privilege_level": "user",
+          "trust_boundaries": [],
+          "authentication_conditions": [],
+          "authorization_conditions": [],
+          "flow_security": [
+            {
+              "from": "internet",
+              "to": "scenario-14-threat-model-unknown-access",
+              "protocol": "https",
+              "trust_boundary": null,
+              "authentication": null,
+              "authorization": null
+            }
+          ],
+          "required_privilege": "user",
+          "required_trust_boundary": null,
+          "privilege_transition": null,
+          "required_authentication_logs": [],
+          "evidence": [
+            "T1059",
+            "DET0001"
+          ],
+          "rationale": "Process Creationの抽象イベントを参照する。",
+          "confidence": "unknown",
+          "mapping_gaps": []
+        }
+      ],
+      "mapping_gaps": 0,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.333333,
+        "status": "partial",
+        "required": 3,
+        "missing": 2
       },
       "errors": []
     }

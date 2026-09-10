@@ -19,6 +19,10 @@ DEFAULT_SCENARIO_IDS = (
     "scenario-03-malware-process-execution",
     "scenario-04-malware-ingress-transfer",
     "scenario-05-malware-staged-behavior",
+    "scenario-11-threat-model-blocked-no-flow",
+    "scenario-12-threat-model-blocked-boundary",
+    "scenario-13-threat-model-blocked-privilege",
+    "scenario-14-threat-model-unknown-access",
 )
 
 _STAGES = ("cve", "cwe", "capec", "attack", "detection")

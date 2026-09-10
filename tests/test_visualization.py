@@ -18,6 +18,10 @@ SCENARIOS = (
     "scenario-03-malware-process-execution",
     "scenario-04-malware-ingress-transfer",
     "scenario-05-malware-staged-behavior",
+    "scenario-11-threat-model-blocked-no-flow",
+    "scenario-12-threat-model-blocked-boundary",
+    "scenario-13-threat-model-blocked-privilege",
+    "scenario-14-threat-model-unknown-access",
 )
 ROOT = Path(__file__).parents[1]
 
@@ -96,6 +100,22 @@ def _evaluation_b() -> dict:
             },
             {
                 "scenario_id": SCENARIOS[3],
+                "candidate_evaluations": [],
+            },
+            {
+                "scenario_id": SCENARIOS[4],
+                "candidate_evaluations": [],
+            },
+            {
+                "scenario_id": SCENARIOS[5],
+                "candidate_evaluations": [],
+            },
+            {
+                "scenario_id": SCENARIOS[6],
+                "candidate_evaluations": [],
+            },
+            {
+                "scenario_id": SCENARIOS[7],
                 "candidate_evaluations": [],
             },
         ]
@@ -208,7 +228,7 @@ def test_evaluate_scenarios_output_feeds_visualizer(tmp_path: Path) -> None:
         (output / "aggregates/evaluation-summary.json").read_text(encoding="utf-8")
     )
     assert summary["evaluation_a"]["population"] == 42
-    assert summary["evaluation_b"]["totals"]["before_candidate_count"] == 6
+    assert summary["evaluation_b"]["totals"]["before_candidate_count"] == 10
     assert all(
         (output / "figures" / name).is_file()
         for name in (
@@ -238,11 +258,11 @@ def test_committed_evaluation_outputs_feed_visualizer(tmp_path: Path) -> None:
         (output / "aggregates/evaluation-summary.json").read_text(encoding="utf-8")
     )
     assert summary["evaluation_b"]["totals"] == {
-        "before_candidate_count": 6,
+        "before_candidate_count": 10,
         "applicable_count": 6,
-        "blocked_count": 0,
-        "unknown_count": 0,
-        "candidate_reduction_rate": 0.0,
+        "blocked_count": 3,
+        "unknown_count": 1,
+        "candidate_reduction_rate": 0.3,
     }
 
 

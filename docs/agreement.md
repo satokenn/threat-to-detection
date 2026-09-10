@@ -107,12 +107,12 @@ telemetry_validation → detection_candidate → reviewed_rule → production_ap
 
 ### 6.0 多分野シナリオ群
 
-評価対象は、日付ごとにディレクトリを増やすのではなく、[`evaluations/scenarios/index.yaml`](../evaluations/scenarios/index.yaml)と同じ階層のシナリオファイルで管理する。現在の設計対象は次の10件である。
+評価対象は、日付ごとにディレクトリを増やすのではなく、[`evaluations/scenarios/index.yaml`](../evaluations/scenarios/index.yaml)と同じ階層のシナリオファイルで管理する。現在の設計対象は次の14件である。
 
 | 分野 | 件数 | 入口 | 状態 |
 |---|---:|---|---|
 | vulnerability | 2 | CVE | fixture-backedの例、Apacheのcounterexample |
-| malware | 3 | 公開された抽象挙動 | 一部fixture-backed、未対応はpartial |
+| malware | 7 | 公開された抽象挙動 | 一部fixture-backed、脅威モデル条件fixtureを含む |
 | identity | 2 | 認証・IDの抽象挙動 | 未評価 |
 | network | 1 | 外部通信の抽象挙動 | 未評価 |
 | cloud | 1 | 管理プレーンの抽象挙動 | 未評価 |

@@ -1,0 +1,38 @@
+schema_version: "1.0"
+scenario_id: scenario-11-threat-model-blocked-no-flow
+title: "脅威モデル評価: 通信経路がない候補をblockedにする"
+scenario_type: malware
+status: threat_model_fixture
+asset:
+  name: scenario-11-threat-model-blocked-no-flow
+  type: endpoint
+  privilege_level: user
+entrypoint:
+  type: malware_behavior
+  source: safe_synthetic_threat_model_fixture
+  identifiers:
+    behavior: abstract_process_execution
+    attack_techniques: [T1059]
+analysis_chain:
+  weakness: 実際のマルウェアではなく、通信経路条件の境界値を評価する。
+  exploitation: 実行手順やペイロードは含めず、ATT&CK Techniqueだけを候補にする。
+  attacker_action: T1059を候補として評価する。
+  monitoring: Process Creationの抽象イベントを参照する。
+  required_privilege: user
+  required_logs:
+    - event_type: process_creation
+      fields: [event_id, process.command_line]
+available_logs: [process_creation]
+expected_outcome:
+  attack_applicability: blocked
+  blocked_reason: communication_path
+positive_samples: ../samples/multidomain/scenario-11-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-11-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: [T1059, DET0001]
+  safety: 通信経路だけを未成立にし、実環境通信は行わない。

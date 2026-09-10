@@ -46,3 +46,14 @@ Apache HTTP Server 2.4.50 / CVE-2021-42013 / CWE-22 / CAPEC-126を確認した�
 - 出力: [`results/aggregates/`](results/aggregates/) と [`results/figures/`](results/figures/)
 - 図: 累積到達率、段階間到達率、シナリオ別適用可否、blocked/unknown理由の4種類
 - 判定: `pass`。集計値を固定入力から決定的に再生成でき、評価結果にないシナリオを0件として補完しない
+
+## evaluation-threat-model-fixture-002
+
+- 対象: 評価B [`multidomain-results.json`](multidomain-results.json) と脅威モデル条件fixture 4件
+- 実行: `evaluate-scenarios` と `visualize-evaluations`、固定fixture由来の評価結果を入力、外部ネットワークなし
+- 評価B集計: 事前候補10、適用6、blocked 3、unknown 1、候補削減率0.300
+- blocked理由: 通信経路1、信頼境界1、権限1
+- unknown理由: 信頼境界1、認証1、認可1
+- 出力: [`report.md`](report.md)、[`results/aggregates/`](results/aggregates/)、[`results/figures/`](results/figures/)
+- 制約: 追加ケースは判定機構の境界条件を確認する安全な合成fixtureであり、実環境での削減効果や一般化を示さない
+- 判定: `pass`。applicable / blocked / unknownを同じ候補評価の母集団で再現し、`unknown`を候補削減数へ合算していない

@@ -1,0 +1,47 @@
+schema_version: "1.0"
+scenario_id: scenario-13-threat-model-blocked-privilege
+title: "脅威モデル評価: 必要権限を満たさない候補をblockedにする"
+scenario_type: malware
+status: threat_model_fixture
+asset:
+  name: scenario-13-threat-model-blocked-privilege
+  type: endpoint
+  privilege_level: user
+flows:
+  - from: internet
+    to: scenario-13-threat-model-blocked-privilege
+    protocol: https
+    trust_boundary: internet-to-workload
+    authentication:
+      required: false
+    authorization:
+      required: false
+entrypoint:
+  type: malware_behavior
+  source: safe_synthetic_threat_model_fixture
+  identifiers:
+    behavior: abstract_privileged_process_execution
+    attack_techniques: [T1059]
+analysis_chain:
+  weakness: 実際のマルウェアではなく、必要権限と対象権限の差を評価する。
+  exploitation: 実行手順やペイロードは含めず、ATT&CK Techniqueだけを候補にする。
+  attacker_action: T1059を候補として評価する。
+  monitoring: Process Creationの抽象イベントを参照する。
+  required_privilege: admin
+  required_logs:
+    - event_type: process_creation
+      fields: [event_id, process.command_line]
+available_logs: [process_creation]
+expected_outcome:
+  attack_applicability: blocked
+  blocked_reason: privilege
+positive_samples: ../samples/multidomain/scenario-13-positive.jsonl
+negative_samples: ../samples/multidomain/scenario-13-negative.jsonl
+comparison:
+  baseline: no_candidate_rule
+  treatment: generated_detection_candidate
+  metrics: [tp, fp, fn, tn, precision, recall, f1]
+  status: not_measured
+evidence:
+  fixture_backed_ids: [T1059, DET0001]
+  safety: 権限ラベルの比較だけを行い、権限取得や実行は行わない。

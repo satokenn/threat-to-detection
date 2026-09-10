@@ -173,5 +173,45 @@
       "SVGと集計データは同じ評価A/B集計結果から生成した。",
       "評価Bのunknownはblockedや候補削減数へ合算していない。"
     ]
+  },
+  {
+    "evaluation_id": "evaluation-threat-model-fixture-002",
+    "schema_version": "1.0",
+    "mode": "fixture",
+    "sources": {
+      "evaluation_b": "evaluations/multidomain-results.json",
+      "scenario_index": "evaluations/scenarios/index.yaml"
+    },
+    "counts": {
+      "evaluation_b_before_candidate_count": 10,
+      "evaluation_b_applicable_count": 6,
+      "evaluation_b_blocked_count": 3,
+      "evaluation_b_unknown_count": 1,
+      "evaluation_b_candidate_reduction_rate": 0.3
+    },
+    "blocked_reasons": {
+      "communication_path": 1,
+      "privilege": 1,
+      "trust_boundary": 1
+    },
+    "unknown_reasons": {
+      "authentication": 1,
+      "authorization": 1,
+      "trust_boundary": 1
+    },
+    "artifacts": [
+      "evaluations/report.md",
+      "evaluations/multidomain-results.json",
+      "evaluations/results/aggregates/evaluation-summary.json",
+      "evaluations/results/aggregates/evaluation_b_summary.csv",
+      "evaluations/results/figures/threat_model_applicability.svg",
+      "evaluations/results/figures/applicability_reasons.svg"
+    ],
+    "status": "pass",
+    "notes": [
+      "追加した4件は、通信経路・信頼境界・権限のblockedと条件未指定のunknownを確認する安全な合成fixtureである。",
+      "この小規模なfixtureの候補削減率は、実環境での効果や一般化を示さない。",
+      "unknownはblockedや候補削減数へ合算していない。"
+    ]
   }
 ]

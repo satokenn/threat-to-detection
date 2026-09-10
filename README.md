@@ -62,7 +62,7 @@ Sigma候補には決定的な`id`と`detection_candidate`という`rule_kind`が
 `metrics`には累積到達率・段階間到達率・最終段階別件数・gapの段階別件数を保存します。
 `NVD-CWE-noinfo`と`NVD-CWE-Other`は具体的なCWE到達として数えません。
 
-10件の多分野シナリオは、固定fixtureを使って次のコマンドで再生成できます。
+14件の多分野シナリオは、固定fixtureを使って次のコマンドで再生成できます。
 
 ```bash
 uv run threat-to-detection evaluate-scenarios \
