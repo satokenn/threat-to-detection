@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from threat_to_detection.cli import visualize_evaluations_command
+from threat_to_detection.cli import evaluate_scenarios_command, visualize_evaluations_command
 from threat_to_detection.services.visualization import (
     aggregate_evaluation_a,
     aggregate_evaluation_b,
@@ -19,6 +19,7 @@ SCENARIOS = (
     "scenario-04-malware-ingress-transfer",
     "scenario-05-malware-staged-behavior",
 )
+ROOT = Path(__file__).parents[1]
 
 
 def _evaluation_a() -> dict:
@@ -172,6 +173,79 @@ def test_visualization_command_writes_four_svg_figures_and_aggregates(tmp_path: 
     assert rows[4]["denominator"] == "4"
 
 
+def test_evaluate_scenarios_output_feeds_visualizer(tmp_path: Path) -> None:
+    evaluation_b = tmp_path / "multidomain-results.json"
+    report = tmp_path / "multidomain-report.md"
+
+    assert evaluate_scenarios_command(
+        [
+            "--capec-fixture",
+            str(ROOT / "tests/fixtures/capec/attack_patterns.xml"),
+            "--attack-fixture",
+            str(ROOT / "tests/fixtures/attack/enterprise-attack.json"),
+            "--nvd-fixture",
+            str(ROOT / "tests/fixtures/nvd/cves.json"),
+            "--output",
+            str(evaluation_b),
+            "--report",
+            str(report),
+        ]
+    ) == 0
+
+    output = tmp_path / "results"
+    assert visualize_evaluations_command(
+        [
+            "--evaluation-a",
+            str(ROOT / "evaluations/cve-evaluation.json"),
+            "--evaluation-b",
+            str(evaluation_b),
+            "--output-dir",
+            str(output),
+        ]
+    ) == 0
+
+    summary = json.loads(
+        (output / "aggregates/evaluation-summary.json").read_text(encoding="utf-8")
+    )
+    assert summary["evaluation_a"]["population"] == 42
+    assert summary["evaluation_b"]["totals"]["before_candidate_count"] == 6
+    assert all(
+        (output / "figures" / name).is_file()
+        for name in (
+            "cumulative_reachability.svg",
+            "stage_reachability.svg",
+            "threat_model_applicability.svg",
+            "applicability_reasons.svg",
+        )
+    )
+
+
+def test_committed_evaluation_outputs_feed_visualizer(tmp_path: Path) -> None:
+    output = tmp_path / "results"
+
+    assert visualize_evaluations_command(
+        [
+            "--evaluation-a",
+            str(ROOT / "evaluations/cve-evaluation.json"),
+            "--evaluation-b",
+            str(ROOT / "evaluations/multidomain-results.json"),
+            "--output-dir",
+            str(output),
+        ]
+    ) == 0
+
+    summary = json.loads(
+        (output / "aggregates/evaluation-summary.json").read_text(encoding="utf-8")
+    )
+    assert summary["evaluation_b"]["totals"] == {
+        "before_candidate_count": 6,
+        "applicable_count": 6,
+        "blocked_count": 0,
+        "unknown_count": 0,
+        "candidate_reduction_rate": 0.0,
+    }
+
+
 def test_empty_evaluations_still_generate_charts(tmp_path: Path) -> None:
     evaluation_a = tmp_path / "a.json"
     evaluation_b = tmp_path / "b.json"
@@ -207,3 +281,22 @@ def test_evaluation_b_rejects_non_evaluation_scenario_output() -> None:
 
     with pytest.raises(ValueError, match="no threat-model candidate data"):
         aggregate_evaluation_b(document, scenario_ids=(SCENARIOS[0],))
+
+
+def test_evaluation_b_rejects_missing_or_duplicate_scenarios() -> None:
+    with pytest.raises(ValueError, match="missing scenarios"):
+        aggregate_evaluation_b(
+            {"scenarios": [{"scenario_id": SCENARIOS[0], "candidate_evaluations": []}]},
+            scenario_ids=SCENARIOS,
+        )
+
+    with pytest.raises(ValueError, match="duplicate scenario_id"):
+        aggregate_evaluation_b(
+            {
+                "scenarios": [
+                    {"scenario_id": SCENARIOS[0], "candidate_evaluations": []},
+                    {"scenario_id": SCENARIOS[0], "candidate_evaluations": []},
+                ]
+            },
+            scenario_ids=(SCENARIOS[0],),
+        )

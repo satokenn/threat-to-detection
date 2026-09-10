@@ -1,0 +1,13 @@
+chart,scenario_id,status,reason,count
+threat_model_applicability,scenario-01-cve-example-process,applicable,,2
+threat_model_applicability,scenario-01-cve-example-process,blocked,,0
+threat_model_applicability,scenario-01-cve-example-process,unknown,,0
+threat_model_applicability,scenario-03-malware-process-execution,applicable,,1
+threat_model_applicability,scenario-03-malware-process-execution,blocked,,0
+threat_model_applicability,scenario-03-malware-process-execution,unknown,,0
+threat_model_applicability,scenario-04-malware-ingress-transfer,applicable,,1
+threat_model_applicability,scenario-04-malware-ingress-transfer,blocked,,0
+threat_model_applicability,scenario-04-malware-ingress-transfer,unknown,,0
+threat_model_applicability,scenario-05-malware-staged-behavior,applicable,,2
+threat_model_applicability,scenario-05-malware-staged-behavior,blocked,,0
+threat_model_applicability,scenario-05-malware-staged-behavior,unknown,,0

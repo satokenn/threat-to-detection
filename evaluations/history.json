@@ -139,5 +139,39 @@
       "The current ATT&CK snapshot had no CAPEC-to-ATT&CK mapping for the selected CAPEC candidates.",
       "Zero ATT&CK and Detection reachability is a snapshot result; no techniques were inferred."
     ]
+  },
+  {
+    "evaluation_id": "evaluation-visualization-001",
+    "schema_version": "1.0",
+    "mode": "fixture",
+    "sources": {
+      "evaluation_a": "evaluations/cve-evaluation.json",
+      "evaluation_b": "evaluations/multidomain-results.json"
+    },
+    "counts": {
+      "evaluation_a_population": 42,
+      "evaluation_a_cwe_reached": 37,
+      "evaluation_a_capec_reached": 34,
+      "evaluation_a_attack_reached": 0,
+      "evaluation_a_detection_reached": 0,
+      "evaluation_b_before_candidate_count": 6,
+      "evaluation_b_applicable_count": 6,
+      "evaluation_b_blocked_count": 0,
+      "evaluation_b_unknown_count": 0
+    },
+    "artifacts": [
+      "evaluations/results/aggregates/evaluation-summary.json",
+      "evaluations/results/aggregates/evaluation_a_summary.csv",
+      "evaluations/results/aggregates/evaluation_b_summary.csv",
+      "evaluations/results/figures/cumulative_reachability.svg",
+      "evaluations/results/figures/stage_reachability.svg",
+      "evaluations/results/figures/threat_model_applicability.svg",
+      "evaluations/results/figures/applicability_reasons.svg"
+    ],
+    "status": "pass",
+    "notes": [
+      "SVGと集計データは同じ評価A/B集計結果から生成した。",
+      "評価Bのunknownはblockedや候補削減数へ合算していない。"
+    ]
   }
 ]

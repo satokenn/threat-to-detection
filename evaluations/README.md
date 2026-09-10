@@ -73,6 +73,34 @@ PYTHONPATH=src python -m threat_to_detection.cli evaluate-cves \
 `evaluate-cves`の既定入力は[`tests/fixtures/evaluation/`](../tests/fixtures/evaluation/)の
 固定スナップショットです。最新データで再評価する場合だけ`--online`を指定します。
 
+## 評価A/Bの可視化
+
+評価A（CVEマッピング）と評価B（脅威モデル条件）の結果から、集計CSV/JSONと4種類の静的SVGを再生成できます。
+
+```bash
+PYTHONPATH=src python -m threat_to_detection.cli visualize-evaluations \
+  --evaluation-a evaluations/cve-evaluation.json \
+  --evaluation-b evaluations/multidomain-results.json \
+  --output-dir evaluations/results
+```
+
+出力先には、`aggregates/evaluation-summary.json`、評価A/Bの集計CSV、次の図が生成されます。
+
+```text
+evaluations/results/
+├── aggregates/
+│   ├── evaluation-summary.json
+│   ├── evaluation_a_summary.csv
+│   └── evaluation_b_summary.csv
+└── figures/
+    ├── cumulative_reachability.svg
+    ├── stage_reachability.svg
+    ├── threat_model_applicability.svg
+    └── applicability_reasons.svg
+```
+
+評価Bは`candidate_evaluations`の判定を集計し、`unknown`を`blocked`や候補削減数へ合算しません。既定の4シナリオが入力に存在しない場合は、0件として黙って補完せずエラーにします。入力が明示的に空の場合だけ、空の集計を生成します。
+
 ## 実データの反例
 
 Apache HTTP Server 2.4.50とCVE-2021-42013（CWE-22、CAPEC-126）は正規候補として調査しました。しかし現行ATT&CK EnterpriseスナップショットにはCAPEC-126からT1190への外部参照がないため、期待経路を推測で補わず、`CAPEC→ATT&CK`のcounterexampleとして扱います。

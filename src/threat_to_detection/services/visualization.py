@@ -148,11 +148,19 @@ def aggregate_evaluation_b(
     if not isinstance(scenarios, list):
         raise ValueError("evaluation B must contain a scenarios list")
     scenario_ids = tuple(scenario_ids)
-    by_id = {
-        item.get("scenario_id"): item
-        for item in scenarios
-        if isinstance(item, dict) and isinstance(item.get("scenario_id"), str)
-    }
+    if len(set(scenario_ids)) != len(scenario_ids):
+        raise ValueError("evaluation B scenario_ids must be unique")
+    by_id: dict[str, Mapping[str, Any]] = {}
+    for item in scenarios:
+        if not isinstance(item, dict) or not isinstance(item.get("scenario_id"), str):
+            raise ValueError("evaluation B scenarios must have string scenario_id values")
+        scenario_id = item["scenario_id"]
+        if scenario_id in by_id:
+            raise ValueError(f"evaluation B contains duplicate scenario_id: {scenario_id}")
+        by_id[scenario_id] = item
+    missing = [scenario_id for scenario_id in scenario_ids if scenario_id not in by_id]
+    if scenarios and missing:
+        raise ValueError(f"evaluation B is missing scenarios: {', '.join(missing)}")
 
     scenario_rows: list[dict[str, Any]] = []
     reason_counts: Counter[tuple[str, str]] = Counter()
@@ -185,14 +193,10 @@ def aggregate_evaluation_b(
             status, reason = reason_key.split(":", 1)
             reason_counts[(status, reason)] += count
 
-    selected_present = [by_id.get(scenario_id) for scenario_id in scenario_ids]
-    if any(item is not None for item in selected_present) and not any(
-        isinstance(item, dict)
-        and (
-            isinstance(item.get("candidate_evaluations"), list)
-            or _has_summary_counts(item)
-        )
-        for item in selected_present
+    if scenarios and not any(
+        isinstance(by_id[scenario_id].get("candidate_evaluations"), list)
+        or _has_summary_counts(by_id[scenario_id])
+        for scenario_id in scenario_ids
     ):
         raise ValueError("evaluation B has no threat-model candidate data")
 
@@ -477,7 +481,7 @@ def _write_json(path: Path, value: Mapping[str, Any]) -> None:
 
 def _write_csv(path: Path, rows: Iterable[Mapping[str, Any]], fieldnames: tuple[str, ...]) -> None:
     with path.open("w", encoding="utf-8", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames)
+        writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
