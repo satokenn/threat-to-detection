@@ -35,6 +35,8 @@ CVE-TEST-0001 → CWE-79 → CAPEC-100 → T1059 → DET0001 → Sigma
 
 各シナリオには、`scenario_type`、`entrypoint`、弱点または挙動から必要ログまでの分析チェーン、利用可能ログ、期待するgap、正例・負例JSONL、ベースラインと生成候補の比較欄があります。`required_logs`はイベント種別と必要フィールドを保持し、coverageはイベント・フィールド単位で計算します。人間向けの集計・考察は[`report.md`](report.md)です。
 
+ATT&CK候補ごとの適用可否・検知可能性の判定順序と出力契約は[`../docs/applicability-algorithm.md`](../docs/applicability-algorithm.md)に記載しています。`candidate_evaluations`には`trace_id`、`technique_id`、`evaluated_conditions`、`evidence`、`provenance`を保存します。
+
 現行fixtureで裏付けられないTechniqueやDetection Strategyは、IDを推測せず`not_evaluated`または`counterexample`としています。カタログ全件のfixture実行状態はindexの`evaluation_status`と`multidomain-results.json`に記録します。実マルウェア、バイナリ、攻撃ペイロードは使用しません。
 
 `analysis.json`の`mode`と`snapshots`には、fixture / cache / online / refreshの取得モード、入力URL、release、固定識別子、取得日、raw SHA-256、正規化・除外条件が記録されます。`manifest.json`ではシナリオと各スナップショットから`analysis.json`およびSigma生成物への関係を確認できます。Apache HTTP Server 2.4.50の未対応経路は、fixtureへ推測の対応を追加せずcounterexampleとして履歴に残します。

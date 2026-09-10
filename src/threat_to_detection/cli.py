@@ -993,7 +993,7 @@ def _analysis_metrics(document: dict[str, Any]) -> dict[str, int]:
         "detection_requirements": requirements,
         "sigma_rules": sigma_rules,
         "complete_paths": len(document.get("trace_paths", [])),
-        "candidate_paths": len(document.get("trace_paths", [])),
+        "candidate_paths": len(document.get("candidate_paths", [])),
         "mapping_gaps": len(document.get("mapping_gaps", [])),
     }
 
