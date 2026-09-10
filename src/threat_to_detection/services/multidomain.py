@@ -117,7 +117,10 @@ def render_report(result: dict[str, Any]) -> str:
             "`attack_applicability`（攻撃適用可否）と`detection_feasibility`（検知可能性）は別の判定であり、",
             "本レポートのcoverageは後者だけを表します。実環境ログや実攻撃への有効性は未評価です。",
             "候補削減率は `blocked / before_candidate_count` とし、`unknown` は削減に含めません。",
-            "今回のblocked / unknownは、判定機構の境界条件を確認するための安全な合成fixtureを追加して測定しています。",
+            (
+                "今回のblocked / unknownは、判定機構の境界条件を確認するための"
+                "安全な合成fixtureを追加して測定しています。"
+            ),
             "この小規模なfixtureで削減率が観測されたことは、実環境での候補削減効果や一般化を示しません。",
             (
                 "blocked / unknown の理由は、通信経路、信頼境界、認証、認可、"
