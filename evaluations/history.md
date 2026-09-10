@@ -24,3 +24,15 @@
 ### 実データの反例
 
 Apache HTTP Server 2.4.50 / CVE-2021-42013 / CWE-22 / CAPEC-126を確認した。現行ATT&CKスナップショットにはCAPEC-126の外部参照がないため、T1190を推測で付与せず、成功経路ではなくcounterexampleとして残す。これは公開知識ベース間の対応欠落を隠さないための記録である。
+
+## cve-mapping-baseline-001
+
+- 対象: Issue #23で選定した42件のCVE
+- 実行: `evaluate-cves --offline`、対象システムの関連性とIssue #24の脅威モデル条件は未適用
+- 到達件数: CWE 37、CAPEC 34、ATT&CK 0、Detection Requirement 0
+- 最終到達段階: `cve=5`、`cwe=3`、`capec=34`、`attack=0`、`detection=0`
+- mapping gap: 433（CVE→CWE 5、CWE→CAPEC 6、CAPEC→ATT&CK 422、ATT&CK→Detection Requirement 0）
+- 主なボトルネック: 現行ATT&CKスナップショットで、選定されたCAPEC候補からATT&CK Techniqueへ到達できなかった
+- 出力: [`cve-evaluation.json`](cve-evaluation.json)
+- 出典ハッシュ: 固定fixtureのハッシュと元公開スナップショットのハッシュを`tests/fixtures/evaluation/README.md`、`cve-evaluation.json`、`history.json`に記録
+- 判定: `partial`。公開情報の対応がない枝を推測で補わず、CVE単位の最遠到達段階と枝単位のgapを保存した

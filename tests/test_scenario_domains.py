@@ -181,3 +181,57 @@ def test_threat_analysis_includes_security_boundary_and_access_context() -> None
     assert record["required_privilege"] == "user"
     assert record["privilege_transition"] == "user-to-admin"
     assert record["required_authentication_logs"] == ["identity.authentication"]
+
+
+def test_telemetry_coverage_keeps_required_fields_and_authentication_logs() -> None:
+    system = SystemModel(
+        scenario={
+            "scenario_type": "identity",
+            "entrypoint_type": "identity_event",
+            "entrypoint": {"type": "identity_event", "id": "login"},
+            "required_logs": [
+                {"event_type": "identity.authentication", "fields": ["user", "outcome"]}
+            ],
+            "required_authentication_logs": ("identity.authentication",),
+        },
+        assets=(
+            Asset(
+                name="idp",
+                logs=("identity_authentication",),
+            ),
+        ),
+    )
+    result = run_pipeline(system, ())
+    coverage = result.to_mapping(system)["threat_analysis"][0]["coverage"]
+
+    assert coverage["required_logs"] == [
+        {"event_type": "identity.authentication", "fields": ["outcome", "user"]}
+    ]
+    assert coverage["covered_events"] == ["identity.authentication"]
+    assert coverage["missing_fields"] == [
+        "identity.authentication.outcome",
+        "identity.authentication.user",
+    ]
+    assert coverage["status"] == "partial"
+
+
+def test_unspecified_authentication_and_authorization_are_unknown() -> None:
+    system = SystemModel(
+        flows=({"from": "client", "to": "server"},),
+    )
+    flow = system.flows[0]
+    assert flow.authentication is None
+    assert flow.authorization is None
+
+    explicit = SystemModel(
+        flows=(
+            {
+                "from": "client",
+                "to": "server",
+                "authentication": {"required": False},
+                "authorization": {"required": False},
+            },
+        )
+    )
+    assert explicit.flows[0].authentication.required is False
+    assert explicit.flows[0].authorization.required is False

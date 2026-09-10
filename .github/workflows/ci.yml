@@ -40,5 +40,12 @@ jobs:
           --capec-fixture tests/fixtures/capec/attack_patterns.xml
           --attack-fixture tests/fixtures/attack/enterprise-attack.json
           --offline --output-dir evaluations/output
+      - name: Regenerate multi-domain catalog evaluation without network
+        run: >-
+          python -m threat_to_detection.cli evaluate-scenarios
+          --capec-fixture tests/fixtures/capec/attack_patterns.xml
+          --attack-fixture tests/fixtures/attack/enterprise-attack.json
+          --nvd-fixture tests/fixtures/nvd/cves.json
+          --output /tmp/multidomain-results.json --report /tmp/multidomain-report.md
       - name: Run tests
         run: pytest -q

@@ -229,6 +229,70 @@ class SelectionResult:
         }
 
 
+def replay_selection(path: str | Path) -> dict[str, object]:
+    """Validate and return a committed selection without contacting NVD.
+
+    The selection JSON contains the complete candidate and selected sets, so
+    it is a portable replay input.  This deliberately validates consistency
+    rather than trying to reconstruct candidates from an unavailable raw NVD
+    response.
+    """
+    source = Path(path)
+    document = json.loads(source.read_text(encoding="utf-8"))
+    if not isinstance(document, dict):
+        raise CveSelectionError("selection replay input must be a JSON object")
+    selection = document.get("selection")
+    selected = document.get("selected")
+    candidate_sets = document.get("candidate_sets")
+    if not isinstance(selection, dict) or not isinstance(selected, list):
+        raise CveSelectionError("selection replay input is missing selection/selected")
+    if not isinstance(candidate_sets, dict):
+        raise CveSelectionError("selection replay input is missing candidate_sets")
+    configured_categories = tuple(selection.get("categories", ()))
+    if configured_categories != CATEGORIES:
+        raise CveSelectionError("selection replay categories do not match the current schema")
+    selected_ids = [item.get("cve_id") for item in selected if isinstance(item, dict)]
+    if len(selected_ids) != len(selected) or any(
+        not isinstance(item, str) for item in selected_ids
+    ):
+        raise CveSelectionError("selection replay contains an invalid selected CVE record")
+    if len(set(selected_ids)) != len(selected_ids):
+        raise CveSelectionError("selection replay contains duplicate selected CVE IDs")
+    candidate_by_id: dict[str, dict[str, object]] = {}
+    for category in CATEGORIES:
+        records = candidate_sets.get(category)
+        if not isinstance(records, list):
+            raise CveSelectionError(f"selection replay is missing category: {category}")
+        for record in records:
+            if not isinstance(record, dict) or not isinstance(record.get("cve_id"), str):
+                raise CveSelectionError(
+                    f"selection replay contains an invalid candidate: {category}"
+                )
+            cve_id = record["cve_id"]
+            if cve_id in candidate_by_id:
+                raise CveSelectionError(f"selection replay contains duplicate CVE ID: {cve_id}")
+            candidate_by_id[cve_id] = record
+    if set(selected_ids) != {
+        cve_id for cve_id, record in candidate_by_id.items() if record.get("selected") is True
+    }:
+        raise CveSelectionError("selected and candidate_sets selected flags disagree")
+    expected_size = selection.get("sample_size_per_category")
+    if not isinstance(expected_size, int) or expected_size <= 0:
+        raise CveSelectionError("selection replay has an invalid sample size")
+    for category in CATEGORIES:
+        count = sum(
+            1
+            for cve_id in selected_ids
+            if candidate_by_id[cve_id].get("category") == category
+        )
+        if count != expected_size:
+            raise CveSelectionError(
+                f"selection replay category {category} has {count} selected records, "
+                f"expected {expected_size}"
+            )
+    return document
+
+
 def classify_cve(vulnerability: Vulnerability) -> str | None:
     """Return one explicit evaluation category from NVD product metadata."""
 
@@ -312,6 +376,7 @@ def select_cves(
         selected.extend(
             {
                 **record,
+                "cwes": list(unique[str(record["cve_id"])].cwes),
                 "selected": True,
                 "selection_order": selection_order[record["cve_id"]],
             }
