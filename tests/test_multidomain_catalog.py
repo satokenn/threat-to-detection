@@ -21,6 +21,16 @@ def test_canonical_multidomain_result_matches_scenario_catalog() -> None:
     assert index["evaluation_status"] == "measured_fixture_offline"
     assert actual_ids == expected_ids
     assert result["summary"]["scenario_count"] == len(expected_ids)
+    assert result["summary"]["before_candidate_count"] == 6
+    assert result["summary"]["applicable_count"] == 6
+    assert result["summary"]["blocked_count"] == 0
+    assert result["summary"]["unknown_count"] == 0
+    evaluated = result["scenarios"][0]["candidate_evaluations"][0]
+    assert evaluated["trace_id"]
+    assert evaluated["technique_id"] == "T1059"
+    assert evaluated["before_candidate"] is True
+    assert evaluated["attack_applicability"]["status"] == "applicable"
+    assert evaluated["detection_feasibility"]["status"] == "partial"
     assert "# 多分野シナリオ評価レポート" in (ROOT / "evaluations/report.md").read_text(
         encoding="utf-8"
     )

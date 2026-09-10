@@ -35,6 +35,10 @@ from threat_to_detection.reporters.sigma import (
     logsource_for_detection_requirement,
     render_sigma_yaml,
 )
+from threat_to_detection.services.applicability import (
+    evaluate_attack_applicability,
+    evaluate_detection_feasibility,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -52,6 +56,7 @@ class PipelineResult:
     intermediates: dict[str, dict[str, tuple[str, ...]]] = field(default_factory=dict)
     sigma_artifacts: dict[str, tuple["SigmaArtifact", ...]] = field(default_factory=dict)
     scenario_id: str = "scenario"
+    candidate_paths: tuple["TracePath", ...] = ()
 
     @property
     def trace_paths(self) -> tuple["TracePath", ...]:
@@ -77,7 +82,14 @@ class PipelineResult:
                     _requirement_mapping(item)
                     for item in self.detection_requirements.get(asset, ())
                 ],
-                "trace_paths": [trace.to_mapping() for trace in asset_traces],
+                "trace_paths": [
+                    _trace_mapping(self, trace, system) for trace in asset_traces
+                ],
+                "candidate_paths": [
+                    _trace_mapping(self, trace, system)
+                    for trace in _candidate_paths(self)
+                    if trace.asset == asset
+                ],
                 "intermediate": {
                     key: list(values)
                     for key, values in self.intermediates.get(asset, {}).items()
@@ -111,7 +123,10 @@ class PipelineResult:
             "schema_version": "1.0",
             "scenario_id": self.scenario_id,
             "assets": assets,
-            "trace_paths": [trace.to_mapping() for trace in self.traces],
+            "trace_paths": [_trace_mapping(self, trace, system) for trace in self.traces],
+            "candidate_paths": [
+                _trace_mapping(self, trace, system) for trace in _candidate_paths(self)
+            ],
             "mapping_gaps": [gap.to_mapping() for gap in self.mapping_gaps],
             "intermediate": {
                 asset: {
@@ -130,6 +145,9 @@ class PipelineResult:
         if system is not None:
             result["system"] = _system_mapping(system)
             result["threat_analysis"] = _threat_analysis_mapping(self, system)
+            result["threat_evaluation"] = _threat_evaluation_mapping(
+                result["threat_analysis"]
+            )
             if system.scenario_type == "control":
                 result["analysis_outcome"] = "control"
             elif self.traces or any(self.detection_requirements.values()):
@@ -167,6 +185,7 @@ class TracePath:
     def to_mapping(self) -> dict[str, str]:
         return {
             "path_id": self.path_id,
+            "trace_id": self.path_id,
             "asset": self.asset,
             "cve_id": self.cve_id,
             "cwe_id": self.cwe_id,
@@ -195,6 +214,47 @@ class MappingGap:
             "stage": self.stage,
             "reason": self.reason,
         }
+
+
+def _trace_mapping(
+    result: PipelineResult, trace: TracePath, system: SystemModel | None
+) -> dict[str, Any]:
+    mapping = trace.to_mapping()
+    if system is None:
+        return mapping
+    asset = next((item for item in system.assets if item.name == trace.asset), None)
+    if asset is None:
+        return mapping
+    mapping["attack_applicability"] = evaluate_attack_applicability(
+        system, asset=asset, trace_id=trace.path_id
+    )
+    requirement = next(
+        (
+            item
+            for item in result.detection_requirements.get(trace.asset, ())
+            if item.technique_id == trace.technique_id
+            and item.strategy_id == trace.strategy_id
+        ),
+        None,
+    )
+    required_specs = _required_telemetry_specs(system.scenario, requirement)
+    available_specs = _available_telemetry_specs(system.scenario, asset.logs)
+    coverage = _telemetry_coverage(required_specs, available_specs)
+    coverage["required_authentication_logs"] = list(
+        system.scenario.required_authentication_logs
+    )
+    mapping["detection_feasibility"] = evaluate_detection_feasibility(
+        coverage,
+        asset=asset,
+        trace_id=trace.path_id,
+        has_detection_requirement=requirement is not None,
+    )
+    return mapping
+
+
+def _candidate_paths(result: PipelineResult) -> tuple[TracePath, ...]:
+    """Return complete and unresolved ATT&CK candidates in stable order."""
+    return tuple(dict.fromkeys((*result.traces, *result.candidate_paths)))
 
 
 @dataclass(frozen=True)
@@ -264,6 +324,7 @@ def run_pipeline(
         asset: () for asset in relevant
     }
     traces: list[TracePath] = []
+    candidate_paths: list[TracePath] = []
     gaps: list[MappingGap] = []
     intermediate: dict[str, dict[str, tuple[str, ...]]] = {
         asset: {"cwe_ids": (), "capec_ids": (), "technique_ids": ()}
@@ -376,7 +437,17 @@ def run_pipeline(
                             requirements_for_technique = map_attack_to_detection(
                                 technique.technique_id, attack_dataset
                             )
+                            candidate_path = TracePath(
+                                asset=asset,
+                                cve_id=vulnerability.cve_id,
+                                cwe_id=cwe_id,
+                                capec_id=pattern.capec_id,
+                                technique_id=technique.technique_id,
+                                strategy_id="",
+                            )
                             if not requirements_for_technique:
+                                if candidate_path not in candidate_paths:
+                                    candidate_paths.append(candidate_path)
                                 path = (
                                     f"{vulnerability.cve_id}:{cwe_id}:"
                                     f"{pattern.capec_id}:{technique.technique_id}"
@@ -421,10 +492,23 @@ def run_pipeline(
             }
             for technique_id in system.scenario.technique_ids:
                 normalized = technique_id.strip().upper()
+                intermediate[asset]["technique_ids"] = _append_unique(
+                    intermediate[asset]["technique_ids"], normalized
+                )
+                candidate_path = TracePath(
+                    asset=asset,
+                    cve_id="",
+                    cwe_id="",
+                    capec_id="",
+                    technique_id=normalized,
+                    strategy_id="",
+                )
                 requirements_for_technique = map_attack_to_detection(
                     normalized, attack_dataset
                 )
                 if not requirements_for_technique:
+                    if candidate_path not in candidate_paths:
+                        candidate_paths.append(candidate_path)
                     gaps.append(
                         MappingGap(
                             asset,
@@ -435,9 +519,6 @@ def run_pipeline(
                         )
                     )
                     continue
-                intermediate[asset]["technique_ids"] = _append_unique(
-                    intermediate[asset]["technique_ids"], normalized
-                )
                 for requirement in requirements_for_technique:
                     mapped[(requirement.technique_id, requirement.strategy_id)] = requirement
                     trace = TracePath(
@@ -458,6 +539,7 @@ def run_pipeline(
         tuple(traces),
         mapping_gaps=tuple(_unique_gaps(gaps)),
         intermediates=intermediate,
+        candidate_paths=tuple(candidate_paths),
     )
 
 
@@ -648,6 +730,7 @@ def run_analysis(
         result.intermediates,
         sigma_artifacts,
         scenario_id,
+        result.candidate_paths,
     )
 
 
@@ -869,96 +952,155 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
     context = system.scenario
     entrypoint = context.entrypoint.model_dump(mode="json") if context.entrypoint else None
     records: list[dict[str, Any]] = []
-    for asset_model in system.assets:
-        asset = asset_model.name
-        requirements = result.detection_requirements.get(asset, ())
-        for requirement in requirements:
-            required_specs = _required_telemetry_specs(context, requirement)
-            available_specs = _available_telemetry_specs(context, asset_model.logs)
-            coverage = _telemetry_coverage(required_specs, available_specs)
-            coverage["required_authentication_logs"] = list(
-                context.required_authentication_logs
+    candidates = (*result.traces, *result.candidate_paths)
+    for trace in candidates:
+        asset_model = next((item for item in system.assets if item.name == trace.asset), None)
+        if asset_model is None:
+            continue
+        requirement = next(
+            (
+                item
+                for item in result.detection_requirements.get(trace.asset, ())
+                if item.technique_id == trace.technique_id
+                and item.strategy_id == trace.strategy_id
+            ),
+            None,
+        )
+        records.append(
+            _threat_record_for_trace(
+                result,
+                system,
+                asset_model,
+                trace,
+                requirement,
+                entrypoint,
             )
-            required = tuple(spec.event_type for spec in required_specs)
-            available = tuple(spec.event_type for spec in available_specs)
-            records.append(
-                {
-                    "asset": asset,
-                    "scenario_type": context.scenario_type,
-                    "entrypoint_type": context.entrypoint_type,
-                    "entrypoint": entrypoint,
-                    "weakness_ids": list(context.weakness_ids),
-                    "attack_pattern_ids": list(context.attack_pattern_ids),
-                    "attacker_actions": list(context.attacker_actions),
-                    "technique_ids": [requirement.technique_id],
-                    "detection_strategy_ids": [requirement.strategy_id],
-                    "analytic_ids": [item.analytic_id for item in requirement.analytics],
-                    "required_telemetry": list(dict.fromkeys(required)),
-                    "available_telemetry": list(available),
-                    "coverage": coverage,
-                    "detection_feasibility": _detection_feasibility(coverage),
-                    **_security_analysis_mapping(system, asset_model),
-                    "required_privilege": context.required_privilege,
-                    "privilege_transition": context.privilege_transition,
-                    "required_authentication_logs": list(context.required_authentication_logs),
-                    "evidence": list(context.evidence),
-                    "rationale": context.rationale,
-                    "confidence": context.confidence,
-                    "mapping_gaps": [
-                        gap.to_mapping()
-                        for gap in result.mapping_gaps
-                        if gap.asset == asset
-                    ],
-                }
-            )
-    # A direct technique with no detection strategy is still an analysis
-    # record.  Keeping it visible is important for counterexamples.  The same
-    # fallback also keeps CVE scenarios with an unresolved mapping visible.
+        )
+    # Keep direct techniques and unresolved mapping gaps visible even when no
+    # candidate could be materialised by the mapping graph.
     if not records:
         for asset_model in system.assets:
-            asset_gaps = [
-                gap.to_mapping() for gap in result.mapping_gaps if gap.asset == asset_model.name
-            ]
-            required = tuple(
-                spec.event_type for spec in _required_telemetry_specs(context, None)
-            )
-            fallback_coverage = _telemetry_coverage(
-                _required_telemetry_specs(context, None),
-                _available_telemetry_specs(context, asset_model.logs),
-            )
-            fallback_coverage["required_authentication_logs"] = list(
-                context.required_authentication_logs
-            )
-            inferred_techniques = tuple(
+            inferred = tuple(
                 result.intermediates.get(asset_model.name, {}).get("technique_ids", ())
             )
-            records.append(
-                {
-                    "asset": asset_model.name,
-                    "scenario_type": context.scenario_type,
-                    "entrypoint_type": context.entrypoint_type,
-                    "entrypoint": entrypoint,
-                    "weakness_ids": list(context.weakness_ids),
-                    "attack_pattern_ids": list(context.attack_pattern_ids),
-                    "attacker_actions": list(context.attacker_actions),
-                    "technique_ids": list(context.technique_ids or inferred_techniques),
-                    "detection_strategy_ids": [],
-                    "analytic_ids": [],
-                    "required_telemetry": list(dict.fromkeys(required)),
-                    "available_telemetry": list(asset_model.logs),
-                    "coverage": fallback_coverage,
-                    "detection_feasibility": _detection_feasibility(fallback_coverage),
-                    **_security_analysis_mapping(system, asset_model),
-                    "required_privilege": context.required_privilege,
-                    "privilege_transition": context.privilege_transition,
-                    "required_authentication_logs": list(context.required_authentication_logs),
-                    "evidence": list(context.evidence),
-                    "rationale": context.rationale,
-                    "confidence": context.confidence,
-                    "mapping_gaps": asset_gaps,
-                }
+            trace = TracePath(
+                asset=asset_model.name,
+                cve_id="",
+                cwe_id="",
+                capec_id="",
+                technique_id=(context.technique_ids or inferred or ("",))[0],
+                strategy_id="",
             )
+            fallback_record = _threat_record_for_trace(
+                result,
+                system,
+                asset_model,
+                trace,
+                None,
+                entrypoint,
+            )
+            fallback_record["before_candidate"] = False
+            records.append(fallback_record)
     return records
+
+
+def _threat_record_for_trace(
+    result: PipelineResult,
+    system: SystemModel,
+    asset: Any,
+    trace: TracePath,
+    requirement: Any | None,
+    entrypoint: Any,
+) -> dict[str, Any]:
+    context = system.scenario
+    required_specs = _required_telemetry_specs(context, requirement)
+    available_specs = _available_telemetry_specs(context, asset.logs)
+    coverage = _telemetry_coverage(required_specs, available_specs)
+    coverage["required_authentication_logs"] = list(context.required_authentication_logs)
+    required = tuple(spec.event_type for spec in required_specs)
+    available = tuple(spec.event_type for spec in available_specs)
+    attack_applicability = evaluate_attack_applicability(
+        system, asset=asset, trace_id=trace.path_id
+    )
+    detection_feasibility = evaluate_detection_feasibility(
+        coverage,
+        asset=asset,
+        trace_id=trace.path_id,
+        has_detection_requirement=requirement is not None,
+    )
+    return {
+        "trace_id": trace.path_id,
+        "before_candidate": True,
+        "asset": asset.name,
+        "technique_id": trace.technique_id,
+        "scenario_type": context.scenario_type,
+        "entrypoint_type": context.entrypoint_type,
+        "entrypoint": entrypoint,
+        "weakness_ids": list(context.weakness_ids),
+        "attack_pattern_ids": list(context.attack_pattern_ids),
+        "attacker_actions": list(context.attacker_actions),
+        "technique_ids": [trace.technique_id] if trace.technique_id else [],
+        "detection_strategy_ids": [trace.strategy_id] if trace.strategy_id else [],
+        "analytic_ids": [item.analytic_id for item in requirement.analytics]
+        if requirement is not None
+        else [],
+        "required_telemetry": list(dict.fromkeys(required)),
+        "available_telemetry": list(available),
+        "coverage": coverage,
+        "attack_applicability": attack_applicability,
+        "detection_feasibility": detection_feasibility,
+        **_security_analysis_mapping(system, asset),
+        "required_privilege": context.required_privilege,
+        "required_trust_boundary": context.required_trust_boundary,
+        "privilege_transition": context.privilege_transition,
+        "required_authentication_logs": list(context.required_authentication_logs),
+        "evidence": list(context.evidence),
+        "rationale": context.rationale,
+        "confidence": context.confidence,
+        "mapping_gaps": [
+            gap.to_mapping() for gap in result.mapping_gaps if gap.asset == asset.name
+        ],
+    }
+
+
+def _threat_evaluation_mapping(records: list[dict[str, Any]]) -> dict[str, Any]:
+    records = [record for record in records if record.get("before_candidate")]
+    applicability = [
+        record["attack_applicability"] for record in records if "attack_applicability" in record
+    ]
+    statuses = {value: sum(item["status"] == value for item in applicability) for value in (
+        "applicable",
+        "blocked",
+        "unknown",
+    )}
+    blocked_reasons = _reason_counts(applicability, "blocked_reasons")
+    unknown_reasons = _reason_counts(applicability, "unknown_reasons")
+    before = len(records)
+    return {
+        "before_candidate_count": before,
+        "applicable_count": statuses["applicable"],
+        "blocked_count": statuses["blocked"],
+        "unknown_count": statuses["unknown"],
+        "candidate_reduction_rate": round(statuses["blocked"] / before, 6) if before else 0.0,
+        "blocked_reasons": blocked_reasons,
+        "unknown_reasons": unknown_reasons,
+        "detection_feasibility": {
+            status: sum(
+                record.get("detection_feasibility", {}).get("status") == status
+                for record in records
+            )
+            for status in ("detectable", "partial", "unavailable", "unknown")
+        },
+        "paths": records,
+    }
+
+
+def _reason_counts(records: list[dict[str, Any]], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for record in records:
+        for reason in record.get(key, ()):
+            counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def _detection_feasibility(coverage: dict[str, Any]) -> str:
