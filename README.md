@@ -69,7 +69,20 @@ uv run threat-to-detection evaluate-scenarios \
   --capec-fixture tests/fixtures/capec/attack_patterns.xml \
   --attack-fixture tests/fixtures/attack/enterprise-attack.json \
   --nvd-fixture tests/fixtures/nvd/cves.json
+
+# Issue #26 / #27の評価結果から、再現可能なSVG図と集計CSV/JSONを生成
+uv run threat-to-detection visualize-evaluations \
+  --evaluation-a evaluations/cve-evaluation.json \
+  --evaluation-b evaluations/multidomain-results.json \
+  --output-dir evaluations/results
 ```
+
+`visualize-evaluations`は評価ロジックを再実行せず、保存済みの評価A/B JSONを入力として、
+累積到達率、段階間到達率、脅威モデル適用後の`applicable / blocked / unknown`内訳、
+`blocked / unknown`の理由別件数をそれぞれSVGで生成します。元の集計値は
+`aggregates/evaluation_a_summary.csv`、`aggregates/evaluation_b_summary.csv`、
+`aggregates/evaluation-summary.json`にも保存されます。数値は入力レコードから算出され、
+`unknown`は候補削減率に含めません。
 
 Issue #23の評価対象CVE 42件を再現可能に取得・選定する手順は
 [`docs/cve-selection.md`](docs/cve-selection.md)にまとめています。既定の固定seedは`23`です。
