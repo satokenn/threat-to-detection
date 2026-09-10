@@ -108,6 +108,7 @@ class ScenarioContext(BaseModel):
     evidence: tuple[str, ...] = ()
     rationale: str = ""
     confidence: Confidence = "unknown"
+    required_trust_boundary: str | None = None
     required_privilege: str | None = None
     privilege_transition: str | None = None
     required_authentication_logs: tuple[str, ...] = ()
@@ -186,7 +187,9 @@ class ScenarioContext(BaseModel):
     def normalize_rationale(cls, value: str) -> str:
         return value.strip()
 
-    @field_validator("required_privilege", "privilege_transition")
+    @field_validator(
+        "required_trust_boundary", "required_privilege", "privilege_transition"
+    )
     @classmethod
     def validate_optional_security_text(cls, value: str | None, info: Any) -> str | None:
         if value is not None and not value.strip():
