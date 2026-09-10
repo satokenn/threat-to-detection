@@ -6,9 +6,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator, model_validator
 
-from threat_to_detection.models.scenario import (
-    ScenarioContext,
-)
+from threat_to_detection.models.scenario import ScenarioContext
 
 
 class Software(BaseModel):
@@ -60,7 +58,7 @@ class AuthenticationCondition(BaseModel):
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-    required: StrictBool = False
+    required: StrictBool | None = None
     method: str | None = None
     principal: str | None = None
     identity_source: str | None = None
@@ -75,7 +73,7 @@ class AuthorizationCondition(BaseModel):
     """Authorization prerequisites for a data flow."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
-    required: StrictBool = False
+    required: StrictBool | None = None
     roles: tuple[str, ...] = ()
     scopes: tuple[str, ...] = ()
     privilege: str | None = None
@@ -163,7 +161,9 @@ class SystemModel(BaseModel):
             "attacker_actions",
             "technique_ids",
             "required_telemetry",
+            "required_logs",
             "available_telemetry",
+            "available_log_fields",
             "evidence",
             "rationale",
             "confidence",
@@ -243,10 +243,31 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         analysis_chain = {}
     required_logs = analysis_chain.get("required_logs", ())
     required_telemetry = []
+    normalized_required_logs: list[dict[str, Any]] = []
     if isinstance(required_logs, list):
         for item in required_logs:
+            if isinstance(item, str):
+                item = {"event_type": item}
             if isinstance(item, dict) and isinstance(item.get("event_type"), str):
                 required_telemetry.append(item["event_type"])
+                normalized_required_logs.append(item)
+    available_logs = document.get("available_logs", ())
+    available_telemetry: list[str] = []
+    available_log_fields: dict[str, list[str]] = {}
+    if isinstance(available_logs, (list, tuple)):
+        for item in available_logs:
+            if isinstance(item, str):
+                available_telemetry.append(item)
+            elif isinstance(item, dict) and isinstance(item.get("event_type"), str):
+                event_type = item["event_type"]
+                available_telemetry.append(event_type)
+                fields = item.get("fields", ())
+                if isinstance(fields, str):
+                    fields = (fields,)
+                if isinstance(fields, (list, tuple)):
+                    available_log_fields[event_type] = [
+                        field for field in fields if isinstance(field, str) and field.strip()
+                    ]
     scenario_type = document["scenario_type"]
     # Vulnerability scenarios list ATT&CK IDs as expected/reference outcomes,
     # but those IDs must be reached through CVE→CWE→CAPEC→ATT&CK.  Treating
@@ -263,7 +284,9 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         "technique_ids": direct_techniques,
         "attacker_actions": _as_sequence(analysis_chain.get("attacker_action")),
         "required_telemetry": tuple(required_telemetry),
-        "available_telemetry": tuple(document.get("available_logs", ())),
+        "required_logs": normalized_required_logs,
+        "available_telemetry": tuple(dict.fromkeys(available_telemetry)),
+        "available_log_fields": available_log_fields,
         "evidence": tuple(document.get("evidence", {}).get("fixture_backed_ids", ()))
         if isinstance(document.get("evidence"), dict)
         else (),
@@ -283,14 +306,14 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         asset = dict(declared_asset)
         asset.setdefault("name", scenario_id)
         asset.setdefault("type", scenario_type)
-        asset.setdefault("logs", list(document.get("available_logs", ())))
+        asset.setdefault("logs", list(available_telemetry))
         if "software" not in asset and isinstance(document.get("software"), list):
             asset["software"] = document["software"]
     else:
         asset = {
             "name": scenario_id,
             "type": scenario_type,
-            "logs": list(document.get("available_logs", ())),
+            "logs": list(available_telemetry),
         }
         if isinstance(document.get("software"), list):
             asset["software"] = document["software"]

@@ -37,6 +37,12 @@ uv run threat-to-detection analyze examples/web-system.yaml \
   --capec-fixture tests/fixtures/capec/attack_patterns.xml \
   --attack-fixture tests/fixtures/attack/enterprise-attack.json \
   --offline --output-dir output
+
+# Issue #23で選定したCVEを、公開マッピングの到達率として一括評価
+uv run threat-to-detection evaluate-cves \
+  --selection evaluations/cve-selection.json \
+  --offline \
+  --output evaluations/cve-evaluation.json
 ```
 
 `analyze`は、一部の対応付けや外部レコードが欠落しても成功した経路を
@@ -49,6 +55,21 @@ Requirement、完全な経路、対応付けのギャップ、生成Sigmaの出�
 Sigma候補には決定的な`id`と`detection_candidate`という`rule_kind`が付きます。
 これはATT&CKのテレメトリ要件から作った候補であり、本番ルールや実攻撃の検知結果ではありません。
 生成物の所有範囲とSHA-256は`manifest.json`に記録されます。
+
+`evaluate-cves`は`evaluations/cve-selection.json`の42件を対象に、対象システムへの関連性を
+適用せず、公開情報のCVE → CWE → CAPEC → ATT&CK → Detection Requirementの接続率を
+`cve-evaluation.json`へ出力します。`records`にはCVEごとの最遠到達段階・候補数・mapping gapを、
+`metrics`には累積到達率・段階間到達率・最終段階別件数・gapの段階別件数を保存します。
+`NVD-CWE-noinfo`と`NVD-CWE-Other`は具体的なCWE到達として数えません。
+
+10件の多分野シナリオは、固定fixtureを使って次のコマンドで再生成できます。
+
+```bash
+uv run threat-to-detection evaluate-scenarios \
+  --capec-fixture tests/fixtures/capec/attack_patterns.xml \
+  --attack-fixture tests/fixtures/attack/enterprise-attack.json \
+  --nvd-fixture tests/fixtures/nvd/cves.json
+```
 
 Issue #23の評価対象CVE 42件を再現可能に取得・選定する手順は
 [`docs/cve-selection.md`](docs/cve-selection.md)にまとめています。既定の固定seedは`23`です。

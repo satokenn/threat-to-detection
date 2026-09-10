@@ -1,116 +1,15 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "evaluation_id": "multidomain-fixture-evaluation",
   "mode": "fixture_offline_safe_synthetic",
   "inputs": {
-    "scenario_index": "evaluations/scenarios/index.yaml",
-    "nvd_fixture": "tests/fixtures/nvd/cves.json",
-    "capec_fixture": "tests/fixtures/capec/attack_patterns.xml",
-    "attack_fixture": "tests/fixtures/attack/enterprise-attack.json"
+    "scenario_index": "evaluations/scenarios/index.yaml"
   },
   "summary": {
     "scenario_count": 10,
-    "by_domain": {
-      "cloud": {
-        "scenarios": 1,
-        "pipeline_status": {
-          "success": 1
-        },
-        "analysis_outcome": {
-          "no_match": 1
-        },
-        "trace_paths": 0,
-        "mapping_gaps": 0,
-        "sigma_rules": 0,
-        "treatment_evaluated": 0,
-        "coverage_ratio": 1.0
-      },
-      "control": {
-        "scenarios": 1,
-        "pipeline_status": {
-          "success": 1
-        },
-        "analysis_outcome": {
-          "control": 1
-        },
-        "trace_paths": 0,
-        "mapping_gaps": 0,
-        "sigma_rules": 0,
-        "treatment_evaluated": 0,
-        "coverage_ratio": 1.0
-      },
-      "identity": {
-        "scenarios": 2,
-        "pipeline_status": {
-          "success": 2
-        },
-        "analysis_outcome": {
-          "no_match": 2
-        },
-        "trace_paths": 0,
-        "mapping_gaps": 0,
-        "sigma_rules": 0,
-        "treatment_evaluated": 0,
-        "coverage_ratio": 1.0
-      },
-      "malware": {
-        "scenarios": 3,
-        "pipeline_status": {
-          "success": 1,
-          "partial": 2
-        },
-        "analysis_outcome": {
-          "matched": 2,
-          "no_match": 1
-        },
-      "trace_paths": 2,
-      "mapping_gaps": 2,
-      "sigma_rules": 2,
-      "treatment_evaluated": 1,
-      "coverage_ratio": 0.833333
-      },
-      "network": {
-        "scenarios": 1,
-        "pipeline_status": {
-          "success": 1
-        },
-        "analysis_outcome": {
-          "no_match": 1
-        },
-        "trace_paths": 0,
-        "mapping_gaps": 0,
-        "sigma_rules": 0,
-        "treatment_evaluated": 0,
-        "coverage_ratio": 1.0
-      },
-      "vulnerability": {
-        "scenarios": 2,
-      "pipeline_status": {
-        "partial": 1,
-        "success": 1
-        },
-        "analysis_outcome": {
-          "matched": 1,
-          "no_match": 1
-        },
-        "trace_paths": 1,
-        "mapping_gaps": 2,
-        "sigma_rules": 1,
-        "treatment_evaluated": 1,
-        "coverage_ratio": 0.5
-      }
-    },
     "by_pipeline_status": {
       "partial": 3,
       "success": 7
-    },
-    "by_entrypoint": {
-      "cve": 2,
-      "malware_behavior": 3,
-      "identity_behavior": 2,
-      "network_behavior": 1,
-      "cloud_behavior": 1,
-      "control": 1
     },
     "by_analysis_outcome": {
       "matched": 3,
@@ -120,68 +19,7 @@
     "trace_paths": 3,
     "mapping_gaps": 4,
     "sigma_rules": 3,
-    "telemetry": {
-      "required": [
-        "process_creation",
-        "Process Creation",
-        "web.request",
-        "network.connection",
-        "file.creation",
-        "identity.authentication",
-        "cloud.audit"
-      ],
-      "available": [
-        "process_creation",
-        "web_access",
-        "web_error",
-        "network_connection",
-        "identity_authentication",
-        "dns",
-        "cloud_audit"
-      ],
-      "covered": [
-        "process_creation",
-        "Process Creation",
-        "network.connection",
-        "identity.authentication",
-        "cloud.audit"
-      ],
-      "missing": [
-        "web.request",
-        "file.creation"
-      ],
-      "required_count": 7,
-      "available_count": 7,
-      "covered_count": 5,
-      "missing_count": 2,
-      "coverage_ratio": 0.714286
-    },
-    "baseline_evaluated": 10,
-    "treatment_evaluated": 2,
-    "baseline_confusion": {
-      "status": "measured",
-      "tp": 0,
-      "fp": 0,
-      "fn": 10,
-      "tn": 10,
-      "precision": null,
-      "recall": 0.0,
-      "f1": null,
-      "positive_samples": 10,
-      "negative_samples": 10
-    },
-    "treatment_confusion": {
-      "status": "measured",
-      "tp": 2,
-      "fp": 0,
-      "fn": 0,
-      "tn": 2,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "positive_samples": 2,
-      "negative_samples": 2
-    }
+    "coverage_ratio": 0.193571
   },
   "scenarios": [
     {
@@ -189,742 +27,180 @@
       "title": "Example Product の脆弱性からプロセス実行を追跡する",
       "domain": "vulnerability",
       "catalog_status": "fixture_backed",
-      "entrypoint": {
-        "type": "cve",
-        "id": null,
-        "identifiers": {
-          "cve": "CVE-TEST-0001",
-          "cwe": "CWE-79",
-          "capec": [
-            "CAPEC-100",
-            "CAPEC-101"
-          ],
-          "attack_techniques": [
-            "T1059",
-            "T1105"
-          ]
-        }
-      },
-      "analysis_outcome": "matched",
       "pipeline_status": "partial",
-      "trace_paths": [
-        {
-          "path_id": "web-server:CVE-TEST-0001:CWE-79:CAPEC-100:T1059:DET0001",
-          "asset": "web-server",
-          "cve_id": "CVE-TEST-0001",
-          "cwe_id": "CWE-79",
-          "capec_id": "CAPEC-100",
-          "technique_id": "T1059",
-          "strategy_id": "DET0001",
-          "strategy_name": "Process execution monitoring"
-        }
-      ],
-      "trace_path_count": 1,
-      "mapping_gaps": [
-        {
-          "asset": "web-server",
-          "source": "T1105",
-          "path": "CVE-TEST-0001:CWE-79:CAPEC-100:T1105",
-          "stage": "Technique→Requirement",
-          "reason": "No detection requirement is mapped"
-        },
-        {
-          "asset": "web-server",
-          "source": "CAPEC-101",
-          "path": "CVE-TEST-0001:CWE-79:CAPEC-101",
-          "stage": "CAPEC→ATT&CK",
-          "reason": "No ATT&CK technique is mapped"
-        }
-      ],
-      "mapping_gap_count": 2,
-      "telemetry": {
-        "required": [
-          "process_creation",
-          "Process Creation"
-        ],
-        "available": [
-          "process_creation"
-        ],
-        "covered": [
-          "process_creation",
-          "Process Creation"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "mapping_gaps": 2,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.333333,
+        "status": "partial",
+        "required": 3,
+        "missing": 2
       },
-      "sigma_rule_count": 1,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "measured",
-          "tp": 1,
-          "fp": 0,
-          "fn": 0,
-          "tn": 1,
-          "precision": 1.0,
-          "recall": 1.0,
-          "f1": 1.0,
-          "positive_samples": 1,
-          "negative_samples": 1
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-01-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-01-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [
-          "CVE-TEST-0001",
-          "CWE-79",
-          "CAPEC-100",
-          "CAPEC-101",
-          "T1059",
-          "T1105",
-          "DET0001"
-        ],
-        "result_policy": "fixtureで検証できる経路だけを実測し、未対応経路はgapとして残す。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-02-cve-apache-counterexample",
       "title": "Apache HTTP Server 2.4.50 の対応欠落を反例として記録する",
       "domain": "vulnerability",
       "catalog_status": "counterexample",
-      "entrypoint": {
-        "type": "cve",
-        "id": null,
-        "identifiers": {
-          "cve": "CVE-2021-42013",
-          "cwe": "CWE-22",
-          "capec": [
-            "CAPEC-126"
-          ],
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "web.request"
-        ],
-        "available": [
-          "web_access",
-          "web_error"
-        ],
-        "covered": [],
-        "missing": [
-          "web.request"
-        ],
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
         "coverage_ratio": 0.0,
-        "status": "unavailable"
+        "status": "unavailable",
+        "required": 4,
+        "missing": 4
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-02-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-02-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "external_record": "CVE-2021-42013 / CWE-22 / CAPEC-126",
-        "result_policy": "T1190などの対応をfixtureへ手作業で追加せず、counterexampleとして扱う。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-03-malware-process-execution",
       "title": "マルウェア挙動知識からプロセス実行の監視要件を作る",
       "domain": "malware",
       "catalog_status": "fixture_backed",
-      "entrypoint": {
-        "type": "malware_behavior",
-        "id": null,
-        "identifiers": {
-          "malware_family": "anonymous_process_execution_behavior",
-          "attack_techniques": [
-            "T1059"
-          ]
-        }
-      },
-      "analysis_outcome": "matched",
       "pipeline_status": "success",
-      "trace_paths": [
-        {
-          "path_id": "scenario-03-malware-process-execution::::T1059:DET0001",
-          "asset": "scenario-03-malware-process-execution",
-          "cve_id": "",
-          "cwe_id": "",
-          "capec_id": "",
-          "technique_id": "T1059",
-          "strategy_id": "DET0001",
-          "strategy_name": "Process execution monitoring"
-        }
-      ],
-      "trace_path_count": 1,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "process_creation",
-          "Process Creation"
-        ],
-        "available": [
-          "process_creation"
-        ],
-        "covered": [
-          "process_creation",
-          "Process Creation"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "mapping_gaps": 0,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.25,
+        "status": "partial",
+        "required": 4,
+        "missing": 3
       },
-      "sigma_rule_count": 1,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "measured",
-          "tp": 1,
-          "fp": 0,
-          "fn": 0,
-          "tn": 1,
-          "precision": 1.0,
-          "recall": 1.0,
-          "f1": 1.0,
-          "positive_samples": 1,
-          "negative_samples": 1
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-03-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-03-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [
-          "T1059",
-          "DET0001",
-          "DC0001"
-        ],
-        "safety": "実マルウェア、バイナリ、悪性コマンドは含めない。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-04-malware-ingress-transfer",
       "title": "外部からのファイル転送挙動と検知要件の欠落を分析する",
       "domain": "malware",
       "catalog_status": "fixture_backed_partial",
-      "entrypoint": {
-        "type": "malware_behavior",
-        "id": null,
-        "identifiers": {
-          "malware_family": "anonymous_ingress_transfer_behavior",
-          "attack_techniques": [
-            "T1105"
-          ]
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "partial",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [
-        {
-          "asset": "scenario-04-malware-ingress-transfer",
-          "source": "T1105",
-          "path": "malware_behavior:T1105",
-          "stage": "Technique→Requirement",
-          "reason": "No detection requirement is mapped"
-        }
-      ],
-      "mapping_gap_count": 1,
-      "telemetry": {
-        "required": [
-          "network.connection",
-          "file.creation"
-        ],
-        "available": [
-          "network_connection"
-        ],
-        "covered": [
-          "network.connection"
-        ],
-        "missing": [
-          "file.creation"
-        ],
-        "coverage_ratio": 0.5,
-        "status": "partial"
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 1,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.142857,
+        "status": "partial",
+        "required": 7,
+        "missing": 6
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-04-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-04-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [
-          "T1105"
-        ],
-        "safety": "実行可能なURL、ファイル、転送内容は含めない。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-05-malware-staged-behavior",
       "title": "プロセス実行と転送の複合挙動を段階別に分析する",
       "domain": "malware",
       "catalog_status": "fixture_backed_partial",
-      "entrypoint": {
-        "type": "malware_behavior",
-        "id": null,
-        "identifiers": {
-          "malware_family": "anonymous_staged_behavior",
-          "attack_techniques": [
-            "T1059",
-            "T1105"
-          ]
-        }
-      },
-      "analysis_outcome": "matched",
       "pipeline_status": "partial",
-      "trace_paths": [
-        {
-          "path_id": "scenario-05-malware-staged-behavior::::T1059:DET0001",
-          "asset": "scenario-05-malware-staged-behavior",
-          "cve_id": "",
-          "cwe_id": "",
-          "capec_id": "",
-          "technique_id": "T1059",
-          "strategy_id": "DET0001",
-          "strategy_name": "Process execution monitoring"
-        }
-      ],
-      "trace_path_count": 1,
-      "mapping_gaps": [
-        {
-          "asset": "scenario-05-malware-staged-behavior",
-          "source": "T1105",
-          "path": "malware_behavior:T1105",
-          "stage": "Technique→Requirement",
-          "reason": "No detection requirement is mapped"
-        }
-      ],
-      "mapping_gap_count": 1,
-      "telemetry": {
-        "required": [
-          "network.connection",
-          "process_creation",
-          "Process Creation"
-        ],
-        "available": [
-          "network_connection",
-          "process_creation"
-        ],
-        "covered": [
-          "network.connection",
-          "process_creation",
-          "Process Creation"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "matched",
+      "trace_paths": 1,
+      "mapping_gaps": 1,
+      "sigma_rules": 1,
+      "coverage": {
+        "coverage_ratio": 0.25,
+        "status": "partial",
+        "required": 8,
+        "missing": 6
       },
-      "sigma_rule_count": 1,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "複数イベント相関を単一イベントmatcherで評価できないため、Sigma候補のTP/FPは算出しない"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-05-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-05-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [
-          "T1059",
-          "T1105",
-          "DET0001"
-        ],
-        "safety": "複合挙動は抽象化し、ペイロードと実行手順を提供しない。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-06-identity-credential-access",
       "title": "認証情報アクセスを入口に必要ログを分析する",
       "domain": "identity",
       "catalog_status": "not_evaluated",
-      "entrypoint": {
-        "type": "identity_behavior",
-        "id": null,
-        "identifiers": {
-          "behavior": "abstract_credential_access",
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "identity.authentication"
-        ],
-        "available": [
-          "identity_authentication"
-        ],
-        "covered": [
-          "identity.authentication"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.2,
+        "status": "partial",
+        "required": 5,
+        "missing": 4
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-06-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-06-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "result_policy": "IDを推測で補わず、追加snapshotまたは明示的な出典が揃うまで未評価とする。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-07-identity-authentication-anomaly",
       "title": "認証異常と正常利用を比較する",
       "domain": "identity",
       "catalog_status": "not_evaluated",
-      "entrypoint": {
-        "type": "identity_behavior",
-        "id": null,
-        "identifiers": {
-          "behavior": "abstract_authentication_anomaly",
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "identity.authentication"
-        ],
-        "available": [
-          "identity_authentication"
-        ],
-        "covered": [
-          "identity.authentication"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.166667,
+        "status": "partial",
+        "required": 6,
+        "missing": 5
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-07-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-07-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "result_policy": "サンプルは形式確認用であり、異常検知モデルの性能を主張しない。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-08-network-command-channel",
       "title": "外部通信を入口にコマンドチャネルの監視要件を分析する",
       "domain": "network",
       "catalog_status": "not_evaluated",
-      "entrypoint": {
-        "type": "network_behavior",
-        "id": null,
-        "identifiers": {
-          "behavior": "abstract_external_command_channel",
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "network.connection"
-        ],
-        "available": [
-          "network_connection",
-          "dns"
-        ],
-        "covered": [
-          "network.connection"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.2,
+        "status": "partial",
+        "required": 5,
+        "missing": 4
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-08-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-08-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "result_policy": "候補生成ではなく、必要ログと不足データの設計を先に評価する。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-09-cloud-control-plane",
       "title": "クラウド管理操作を入口に監視可能性を分析する",
       "domain": "cloud",
       "catalog_status": "not_evaluated",
-      "entrypoint": {
-        "type": "cloud_behavior",
-        "id": null,
-        "identifiers": {
-          "behavior": "abstract_cloud_control_plane_change",
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "no_match",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "cloud.audit"
-        ],
-        "available": [
-          "cloud_audit"
-        ],
-        "covered": [
-          "cloud.audit"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "no_match",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.142857,
+        "status": "partial",
+        "required": 7,
+        "missing": 6
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-09-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-09-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "result_policy": "クラウド固有の対応表を追加するまで、候補の有効性を評価しない。"
-      }
+      "errors": []
     },
     {
       "scenario_id": "scenario-10-control-normal-administration",
       "title": "正常な管理操作を対照データとして扱う",
       "domain": "control",
       "catalog_status": "control_not_evaluated",
-      "entrypoint": {
-        "type": "control",
-        "id": null,
-        "identifiers": {
-          "behavior": "normal_administration",
-          "attack_techniques": []
-        }
-      },
-      "analysis_outcome": "control",
       "pipeline_status": "success",
-      "trace_paths": [],
-      "trace_path_count": 0,
-      "mapping_gaps": [],
-      "mapping_gap_count": 0,
-      "telemetry": {
-        "required": [
-          "process_creation"
-        ],
-        "available": [
-          "process_creation"
-        ],
-        "covered": [
-          "process_creation"
-        ],
-        "missing": [],
-        "coverage_ratio": 1.0,
-        "status": "complete"
+      "analysis_outcome": "control",
+      "trace_paths": 0,
+      "mapping_gaps": 0,
+      "sigma_rules": 0,
+      "coverage": {
+        "coverage_ratio": 0.25,
+        "status": "partial",
+        "required": 4,
+        "missing": 3
       },
-      "sigma_rule_count": 0,
-      "evaluation": {
-        "baseline": {
-          "status": "measured",
-          "tp": 0,
-          "fp": 0,
-          "fn": 1,
-          "tn": 1,
-          "precision": null,
-          "recall": 0.0,
-          "f1": null,
-          "positive_samples": 1,
-          "negative_samples": 1
-        },
-        "treatment": {
-          "status": "not_applicable",
-          "reason": "TechniqueまたはDetection Strategyが確定せず、Sigma候補が生成されなかった"
-        }
-      },
-      "sample_paths": {
-        "positive": "evaluations/samples/multidomain/scenario-10-positive.jsonl",
-        "negative": "evaluations/samples/multidomain/scenario-10-negative.jsonl"
-      },
-      "evidence": {
-        "fixture_backed_ids": [],
-        "result_policy": "正常操作を攻撃成功や検知成功と解釈しない。"
-      }
+      "errors": []
     }
   ]
 }

@@ -11,7 +11,7 @@ data_safety:
   exploit_payloads: false
   telemetry: safe_synthetic_jsonl
   external_network_in_ci: false
-evaluation_status: planned
+evaluation_status: measured_fixture_offline
 scenarios:
   - id: scenario-01-cve-example-process
     file: scenario-01-cve-example-process.yaml

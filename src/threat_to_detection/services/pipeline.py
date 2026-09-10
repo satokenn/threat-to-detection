@@ -26,6 +26,7 @@ from threat_to_detection.mappers.capec_to_attack import (
 )
 from threat_to_detection.mappers.cwe_to_capec import map_cwe_to_capec
 from threat_to_detection.models.detection import DetectionRequirement
+from threat_to_detection.models.scenario import TelemetryRequirement
 from threat_to_detection.models.sigma import SigmaEvidence, SigmaEvidenceRecord, SigmaRule
 from threat_to_detection.models.system import SystemModel
 from threat_to_detection.models.vulnerability import Vulnerability
@@ -872,11 +873,14 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
         asset = asset_model.name
         requirements = result.detection_requirements.get(asset, ())
         for requirement in requirements:
-            required = tuple(
-                dict.fromkeys((*context.required_telemetry, *requirement.required_logs))
+            required_specs = _required_telemetry_specs(context, requirement)
+            available_specs = _available_telemetry_specs(context, asset_model.logs)
+            coverage = _telemetry_coverage(required_specs, available_specs)
+            coverage["required_authentication_logs"] = list(
+                context.required_authentication_logs
             )
-            available = tuple(asset_model.logs)
-            coverage = _telemetry_coverage(required, available)
+            required = tuple(spec.event_type for spec in required_specs)
+            available = tuple(spec.event_type for spec in available_specs)
             records.append(
                 {
                     "asset": asset,
@@ -889,9 +893,10 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
                     "technique_ids": [requirement.technique_id],
                     "detection_strategy_ids": [requirement.strategy_id],
                     "analytic_ids": [item.analytic_id for item in requirement.analytics],
-                    "required_telemetry": list(required),
+                    "required_telemetry": list(dict.fromkeys(required)),
                     "available_telemetry": list(available),
                     "coverage": coverage,
+                    "detection_feasibility": _detection_feasibility(coverage),
                     **_security_analysis_mapping(system, asset_model),
                     "required_privilege": context.required_privilege,
                     "privilege_transition": context.privilege_transition,
@@ -914,7 +919,16 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
             asset_gaps = [
                 gap.to_mapping() for gap in result.mapping_gaps if gap.asset == asset_model.name
             ]
-            required = tuple(context.required_telemetry)
+            required = tuple(
+                spec.event_type for spec in _required_telemetry_specs(context, None)
+            )
+            fallback_coverage = _telemetry_coverage(
+                _required_telemetry_specs(context, None),
+                _available_telemetry_specs(context, asset_model.logs),
+            )
+            fallback_coverage["required_authentication_logs"] = list(
+                context.required_authentication_logs
+            )
             inferred_techniques = tuple(
                 result.intermediates.get(asset_model.name, {}).get("technique_ids", ())
             )
@@ -930,9 +944,10 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
                     "technique_ids": list(context.technique_ids or inferred_techniques),
                     "detection_strategy_ids": [],
                     "analytic_ids": [],
-                    "required_telemetry": list(required),
+                    "required_telemetry": list(dict.fromkeys(required)),
                     "available_telemetry": list(asset_model.logs),
-                    "coverage": _telemetry_coverage(required, tuple(asset_model.logs)),
+                    "coverage": fallback_coverage,
+                    "detection_feasibility": _detection_feasibility(fallback_coverage),
                     **_security_analysis_mapping(system, asset_model),
                     "required_privilege": context.required_privilege,
                     "privilege_transition": context.privilege_transition,
@@ -946,19 +961,142 @@ def _threat_analysis_mapping(result: PipelineResult, system: SystemModel) -> lis
     return records
 
 
-def _telemetry_coverage(required: tuple[str, ...], available: tuple[str, ...]) -> dict[str, Any]:
-    """Compare human ATT&CK names and scenario log slugs consistently."""
-    available_keys = {_telemetry_key(value) for value in available}
-    covered = tuple(value for value in required if _telemetry_key(value) in available_keys)
-    missing = tuple(value for value in required if _telemetry_key(value) not in available_keys)
-    ratio = len(covered) / len(required) if required else 1.0
+def _detection_feasibility(coverage: dict[str, Any]) -> str:
+    """Translate telemetry coverage into the independent detection status."""
     return {
-        "required": list(required),
-        "available": list(available),
-        "covered": list(covered),
+        "complete": "detectable",
+        "partial": "partial",
+        "unavailable": "unavailable",
+    }.get(str(coverage.get("status")), "unknown")
+
+
+def _required_telemetry_specs(
+    context: Any, requirement: Any | None
+) -> tuple[TelemetryRequirement, ...]:
+    """Combine scenario, ATT&CK, and authentication-log requirements."""
+    specs: list[TelemetryRequirement] = list(context.required_logs)
+    specs.extend(TelemetryRequirement(event_type=value) for value in context.required_telemetry)
+    specs.extend(
+        TelemetryRequirement(event_type=value)
+        for value in context.required_authentication_logs
+    )
+    if requirement is not None:
+        # Detection requirements expose analytic fields for rule generation,
+        # but their platform-specific event names are not guaranteed to match
+        # a scenario's declared event taxonomy.  The normalized data
+        # component names remain the backwards-compatible event requirement;
+        # structured scenario ``required_logs`` supply field-level coverage.
+        specs.extend(
+            TelemetryRequirement(event_type=value) for value in requirement.required_logs
+        )
+    merged: dict[str, set[str]] = {}
+    display_names: dict[str, str] = {}
+    for spec in specs:
+        key = _telemetry_key(spec.event_type)
+        display_names.setdefault(key, spec.event_type)
+        merged.setdefault(key, set()).update(_field_key(value) for value in spec.fields)
+    return tuple(
+        TelemetryRequirement(
+            event_type=display_names[key],
+            fields=tuple(sorted(fields)),
+        )
+        for key, fields in merged.items()
+    )
+
+
+def _available_telemetry_specs(
+    context: Any, asset_logs: tuple[str, ...]
+) -> tuple[TelemetryRequirement, ...]:
+    """Build available event/field specs from asset logs and scenario metadata."""
+    names = list(asset_logs)
+    names.extend(context.available_telemetry)
+    names.extend(context.available_log_fields)
+    merged: dict[str, set[str]] = {}
+    display_names: dict[str, str] = {}
+    for name in names:
+        key = _telemetry_key(name)
+        display_names.setdefault(key, name)
+        merged.setdefault(key, set()).update(
+            _field_key(value) for value in context.available_log_fields.get(name, ())
+        )
+    return tuple(
+        TelemetryRequirement(event_type=display_names[key], fields=tuple(sorted(fields)))
+        for key, fields in merged.items()
+    )
+
+
+def _telemetry_coverage(
+    required: tuple[TelemetryRequirement, ...], available: tuple[TelemetryRequirement, ...]
+) -> dict[str, Any]:
+    """Compare telemetry at event and field granularity.
+
+    ``status`` describes detection feasibility only.  It does not decide
+    whether an attack path is applicable; that remains a separate Issue #24
+    concern.
+    """
+    available_by_key = {
+        _telemetry_key(spec.event_type): spec for spec in available
+    }
+    required_events = tuple(spec.event_type for spec in required)
+    available_events = tuple(spec.event_type for spec in available)
+    covered_events = tuple(
+        spec.event_type
+        for spec in required
+        if _telemetry_key(spec.event_type) in available_by_key
+    )
+    missing_events = tuple(
+        spec.event_type
+        for spec in required
+        if _telemetry_key(spec.event_type) not in available_by_key
+    )
+    required_fields = tuple(
+        f"{spec.event_type}.{field}" for spec in required for field in spec.fields
+    )
+    available_fields = tuple(
+        f"{spec.event_type}.{field}" for spec in available for field in spec.fields
+    )
+    covered_fields: list[str] = []
+    missing_fields: list[str] = []
+    for spec in required:
+        available_spec = available_by_key.get(_telemetry_key(spec.event_type))
+        available_field_keys = (
+            {_field_key(value) for value in available_spec.fields}
+            if available_spec is not None
+            else set()
+        )
+        for field_name in spec.fields:
+            display = f"{spec.event_type}.{field_name}"
+            if _field_key(field_name) in available_field_keys:
+                covered_fields.append(display)
+            else:
+                missing_fields.append(display)
+    total = len(required_events) + len(required_fields)
+    covered_count = len(covered_events) + len(covered_fields)
+    ratio = covered_count / total if total else 1.0
+    missing = tuple(dict.fromkeys((*missing_events, *missing_fields)))
+    return {
+        "required": list(dict.fromkeys(required_events)),
+        "available": list(dict.fromkeys(available_events)),
+        "covered": list(dict.fromkeys(covered_events)),
         "missing": list(missing),
         "coverage_ratio": ratio,
-        "status": "complete" if not missing else ("unavailable" if not covered else "partial"),
+        "status": "complete"
+        if not missing
+        else ("unavailable" if not covered_events else "partial"),
+        "required_logs": [
+            {"event_type": spec.event_type, "fields": list(spec.fields)} for spec in required
+        ],
+        "available_logs": [
+            {"event_type": spec.event_type, "fields": list(spec.fields)} for spec in available
+        ],
+        "required_events": list(dict.fromkeys(required_events)),
+        "available_events": list(dict.fromkeys(available_events)),
+        "covered_events": list(dict.fromkeys(covered_events)),
+        "missing_events": list(dict.fromkeys(missing_events)),
+        "required_fields": list(required_fields),
+        "available_fields": list(available_fields),
+        "covered_fields": list(covered_fields),
+        "missing_fields": list(missing_fields),
     }
 
 
@@ -1025,3 +1163,7 @@ def _telemetry_key(value: str) -> str:
         "dns_query": "dns",
     }
     return aliases.get(normalized, normalized)
+
+
+def _field_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", ".", value.casefold()).strip(".")

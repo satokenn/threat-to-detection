@@ -12,6 +12,7 @@ from threat_to_detection.services.cve_selection import (
     CATEGORIES,
     InsufficientCandidatesError,
     iter_date_windows,
+    replay_selection,
     select_cves,
 )
 
@@ -158,3 +159,42 @@ def test_select_command_writes_machine_readable_result(tmp_path: Path) -> None:
     assert document["counts"]["selected_records"] == 42
     assert set(document["candidate_sets"]) == set(CATEGORIES)
     assert document["selection"]["mapping_independence"]
+    assert all("cwes" in item for item in document["selected"])
+    assert all(
+        "cwes" not in item
+        for records in document["candidate_sets"].values()
+        for item in records
+    )
+
+
+def test_selection_can_be_replayed_without_nvd_input(tmp_path: Path) -> None:
+    selection = select_cves(_candidates()).to_mapping()
+    source = tmp_path / "selection.json"
+    source.write_text(json.dumps(selection), encoding="utf-8")
+
+    replayed = replay_selection(source)
+
+    assert replayed["selected"] == selection["selected"]
+
+
+def test_replay_rejects_inconsistent_selected_flags(tmp_path: Path) -> None:
+    selection = select_cves(_candidates()).to_mapping()
+    selection["selected"][0]["cve_id"] = "CVE-NOT-IN-CANDIDATES"
+    source = tmp_path / "selection.json"
+    source.write_text(json.dumps(selection), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="selected and candidate_sets"):
+        replay_selection(source)
+
+
+def test_select_command_replays_committed_result_offline(tmp_path: Path) -> None:
+    source = tmp_path / "selection.json"
+    source.write_text(json.dumps(select_cves(_candidates()).to_mapping()), encoding="utf-8")
+    output = tmp_path / "replayed.json"
+
+    assert select_cves_command(
+        ["--offline", "--replay", str(source), "--output", str(output)]
+    ) == 0
+    document = json.loads(output.read_text(encoding="utf-8"))
+    assert document["source"]["mode"] == "replay"
+    assert document["selected"] == json.loads(source.read_text(encoding="utf-8"))["selected"]

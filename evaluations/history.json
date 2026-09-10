@@ -75,5 +75,69 @@
       "T1105 has no detection strategy in the fixture.",
       "The Sigma rule is a detection candidate, not a production rule."
     ]
+  },
+  {
+    "evaluation_id": "cve-mapping-baseline-001",
+    "schema_version": "1.0",
+    "scenario": "evaluations/cve-selection.json",
+    "mode": "fixture",
+    "snapshot": {
+      "selection": "evaluations/cve-selection.json",
+      "capec": "tests/fixtures/evaluation/capec-selected.xml",
+      "attack": "tests/fixtures/evaluation/attack-selected.json"
+    },
+    "sources": {
+      "selection": {
+        "sha256": "e7fc9b6c9ee9f8c4bb033c1afd4931d2873f0cda3c6e16a291018f481dfbc8c"
+      },
+      "capec": {
+        "url": "https://capec.mitre.org/data/xml/capec_latest.xml",
+        "source_sha256": "70279a2dff0cb0ad79e546adb07828335a704ad5210e047e09e986172fc9e34d",
+        "fixture_sha256": "94aa23978066259f66cbbd73926c2a65ac43e128825aebcb06bfd6ae1f81d534"
+      },
+      "attack": {
+        "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json",
+        "source_sha256": "dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4",
+        "fixture_sha256": "f2e437774e89066bf843c145b1487cb3968b2f08393aa76d05754ef1cf392543"
+      }
+    },
+    "counts": {
+      "population": 42,
+      "cwe_reached": 37,
+      "capec_reached": 34,
+      "attack_reached": 0,
+      "detection_reached": 0,
+      "mapping_gaps": 433,
+      "mapping_gaps_by_stage": {
+        "CVE→CWE": 5,
+        "CWE→CAPEC": 6,
+        "CAPEC→ATT&CK": 422,
+        "ATT&CK→Detection Requirement": 0
+      },
+      "final_stage_counts": {
+        "cve": 5,
+        "cwe": 3,
+        "capec": 34,
+        "attack": 0,
+        "detection": 0
+      }
+    },
+    "diff": {
+      "baseline": null,
+      "current": {
+        "population": 42,
+        "cwe_reached": 37,
+        "capec_reached": 34,
+        "attack_reached": 0,
+        "detection_reached": 0,
+        "mapping_gaps": 433
+      }
+    },
+    "status": "partial",
+    "notes": [
+      "NVD-CWE-noinfo and NVD-CWE-Other were excluded from concrete CWE reachability.",
+      "The current ATT&CK snapshot had no CAPEC-to-ATT&CK mapping for the selected CAPEC candidates.",
+      "Zero ATT&CK and Detection reachability is a snapshot result; no techniques were inferred."
+    ]
   }
 ]
