@@ -170,6 +170,11 @@ class SystemModel(BaseModel):
             "required_privilege",
             "privilege_transition",
             "required_authentication_logs",
+            "required_trust_boundary",
+            "authentication",
+            "required_authentication",
+            "authorization",
+            "required_authorization",
         }
         flat = {key: values.pop(key) for key in flat_keys if key in values}
         if flat:
@@ -293,6 +298,9 @@ def _scenario_document_to_system(document: dict[str, Any]) -> dict[str, Any]:
         "rationale": str(analysis_chain.get("monitoring", "")),
         "required_privilege": analysis_chain.get("required_privilege"),
         "privilege_transition": analysis_chain.get("privilege_transition"),
+        "required_trust_boundary": analysis_chain.get("required_trust_boundary"),
+        "authentication": analysis_chain.get("authentication"),
+        "authorization": analysis_chain.get("authorization"),
         "required_authentication_logs": _as_sequence(
             analysis_chain.get("required_authentication_logs")
         ),

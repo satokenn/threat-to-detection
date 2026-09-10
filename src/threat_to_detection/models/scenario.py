@@ -8,7 +8,15 @@ downstream ATT&CK-to-telemetry stages shared.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    field_validator,
+    model_validator,
+)
 
 ScenarioType = Literal[
     "vulnerability",
@@ -69,6 +77,47 @@ class TelemetryRequirement(BaseModel):
         return tuple(dict.fromkeys(item.strip() for item in value))
 
 
+class AccessCondition(BaseModel):
+    """An explicitly declared authentication or authorization condition.
+
+    ``satisfied`` is intentionally optional.  A condition that is merely
+    required is not evidence that an attacker can satisfy it; callers must
+    provide an explicit assertion when they want applicability to be
+    considered satisfied.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    required: StrictBool | None = None
+    satisfied: StrictBool | None = None
+    method: str | None = None
+    principal: str | None = None
+    identity_source: str | None = None
+    roles: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    privilege: str | None = None
+
+    @field_validator("method", "principal", "identity_source", "privilege")
+    @classmethod
+    def validate_optional_text(cls, value: str | None, info: Any) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError(f"{info.field_name} must not be empty")
+        return value.strip() if value is not None else None
+
+    @field_validator("roles", "scopes", mode="before")
+    @classmethod
+    def normalize_sequences(cls, value: Any) -> tuple[str, ...]:
+        if value is None:
+            return ()
+        if isinstance(value, str):
+            value = (value,)
+        if not isinstance(value, (list, tuple, set)):
+            raise ValueError("roles/scopes must be strings or lists of strings")
+        if any(not isinstance(item, str) or not item.strip() for item in value):
+            raise ValueError("roles/scopes must contain non-empty strings")
+        return tuple(dict.fromkeys(item.strip() for item in value))
+
+
 class ScenarioEntrypoint(BaseModel):
     """The threat knowledge record that starts an analysis."""
 
@@ -111,6 +160,15 @@ class ScenarioContext(BaseModel):
     required_privilege: str | None = None
     privilege_transition: str | None = None
     required_authentication_logs: tuple[str, ...] = ()
+    required_trust_boundary: str | None = None
+    authentication: AccessCondition | None = Field(
+        default=None,
+        validation_alias=AliasChoices("authentication", "required_authentication"),
+    )
+    authorization: AccessCondition | None = Field(
+        default=None,
+        validation_alias=AliasChoices("authorization", "required_authorization"),
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -186,7 +244,7 @@ class ScenarioContext(BaseModel):
     def normalize_rationale(cls, value: str) -> str:
         return value.strip()
 
-    @field_validator("required_privilege", "privilege_transition")
+    @field_validator("required_privilege", "privilege_transition", "required_trust_boundary")
     @classmethod
     def validate_optional_security_text(cls, value: str | None, info: Any) -> str | None:
         if value is not None and not value.strip():
